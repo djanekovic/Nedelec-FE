@@ -8,6 +8,7 @@ obj = $(src:.c=.o)
 
 .DEFAULT_GOAL := eddy
 eddy: $(obj) chkopts
+	@mkdir -p bin/
 	-${CLINKER} -o bin/$@ $(obj) -g ${PETSC_LIB}
 
 clean::
