@@ -15,14 +15,14 @@ PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace)
 
     //TODO: clever define for this ugly addressing
     for (PetscInt i = 0; i < M; i++) {
-        fspace->val[0 * (M * 2) + i * M + 0] = -q.pw[i * 3 + 1];
-        fspace->val[0 * (M * 2) + i * M + 1] = q.pw[i * 3 + 0];
+        fspace->val[0 * (M * 2) + i * 2 + 0] = -q.pw[i * 3 + 1];
+        fspace->val[0 * (M * 2) + i * 2 + 1] = q.pw[i * 3 + 0];
 
-        fspace->val[1 * (M * 2) + i * M + 0] = -q.pw[i * 3 + 1];
-        fspace->val[1 * (M * 2) + i * M + 1] = q.pw[i * 3 + 0] - 1;
+        fspace->val[1 * (M * 2) + i * 2 + 0] = -q.pw[i * 3 + 1];
+        fspace->val[1 * (M * 2) + i * 2 + 1] = q.pw[i * 3 + 0] - 1;
 
-        fspace->val[2 * (M * 2) + i * M + 0] = 1 - q.pw[i * 3 + 1];
-        fspace->val[2 * (M * 2) + i * M + 1] = q.pw[i * 3 + 0];
+        fspace->val[2 * (M * 2) + i * 2 + 0] = 1 - q.pw[i * 3 + 1];
+        fspace->val[2 * (M * 2) + i * 2 + 1] = q.pw[i * 3 + 0];
 
         fspace->cval[i * 3 + 0] = 2;
         fspace->cval[i * 3 + 1] = 2;
