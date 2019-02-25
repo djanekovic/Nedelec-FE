@@ -1,6 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+
+/* Solver context definition */
 struct ctx {
     PetscInt dim; /* problem dimension */
     PetscInt ref; /* refinement flag */
@@ -9,6 +11,5 @@ struct ctx {
 };
 
 PetscErrorCode handle_cli_options(struct ctx *sctx);
-PetscErrorCode quad_pw(PetscInt order, Mat *pw);
 
 #endif /* UTIL_H */
