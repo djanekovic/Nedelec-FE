@@ -1,0 +1,8 @@
+FEM assembly routines for Nedelec elements
+==========================================
+
+Code in this repository is heavily inspired by [1]. Assembly routines use
+PETSc as backend.
+
+[1] - Fast MATLAB assembly of FEM matrices in 2D and 3D: Edge elements,
+      I.Anjam, J.Valdman, 2015

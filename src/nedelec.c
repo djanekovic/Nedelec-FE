@@ -1,6 +1,5 @@
 #include <petscmat.h>
 
-#include "quadrature.h"
 #include "nedelec.h"
 
 /**
@@ -15,6 +14,7 @@ PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace)
 
     //TODO: clever define for this ugly addressing
     for (PetscInt i = 0; i < M; i++) {
+        // zero basis function for i-th quadrature point (x, y)
         fspace->val[0 * (M * 2) + i * 2 + 0] = -q.pw[i * 3 + 1];
         fspace->val[0 * (M * 2) + i * 2 + 1] = q.pw[i * 3 + 0];
 

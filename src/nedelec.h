@@ -1,6 +1,7 @@
 #ifndef NEDELEC_H
 #define NEDELEC_H
 
+#include "quadrature.h"
 
 struct function_space {
     PetscScalar *val;

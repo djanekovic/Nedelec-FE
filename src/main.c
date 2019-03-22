@@ -18,6 +18,8 @@ int main (int argc, char **argv)
     struct quadrature q;
     DM dm;
     Mat mass, stiffness;
+    Vec load, x;
+    KSP ksp; PC pc;
 
     PetscErrorCode ierr = PetscInitialize(&argc, &argv, NULL, help);
     if (ierr) {
@@ -28,11 +30,25 @@ int main (int argc, char **argv)
     ierr = generate_mesh(&sctx, &dm); CHKERRQ(ierr);
     ierr = generate_quad(1, &q); CHKERRQ(ierr);
     ierr = nedelec_basis(q, &fspace); CHKERRQ(ierr);
+
+    //in one function assemble all matrices
     ierr = assemble_stiffness(dm, q, fspace, &stiffness); CHKERRQ(ierr);
+    MatView(stiffness, PETSC_VIEWER_STDOUT_WORLD);
     ierr = assemble_mass(dm, q, fspace, &mass); CHKERRQ(ierr);
+    MatView(mass, PETSC_VIEWER_STDOUT_WORLD);
+    ierr = MatAXPY(stiffness, 1, mass, SAME_NONZERO_PATTERN); CHKERRQ(ierr);
+
+    ierr = assemble_load(dm, q, fspace, &load); CHKERRQ(ierr);
+    ierr = VecDuplicate(load, &x); CHKERRQ(ierr);
+
+    ierr = KSPCreate(PETSC_COMM_WORLD, &ksp); CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp, stiffness, stiffness);
+    ierr = KSPSolve(ksp, load, x);
+    VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     ierr = MatDestroy(&mass); CHKERRQ(ierr);
     ierr = MatDestroy(&stiffness); CHKERRQ(ierr);
+
     ierr = DMDestroy(&dm); CHKERRQ(ierr);
 
     ierr = PetscFree(fspace.cval); CHKERRQ(ierr);

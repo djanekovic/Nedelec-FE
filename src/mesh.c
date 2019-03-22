@@ -2,7 +2,6 @@
 #include "petscdmshell.h"
 #include <petscmat.h>
 
-#include "util.h"
 #include "mesh.h"
 
 static PetscErrorCode free_ctx(void **data);
@@ -75,6 +74,8 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
     return (0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "free_ctx"
 static PetscErrorCode free_ctx(void **data)
 {
     struct mesh_ctx *mctx = (struct mesh_ctx *) *data;
