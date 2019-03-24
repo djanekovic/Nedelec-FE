@@ -4,8 +4,7 @@
 #include "quadrature.h"
 #include "nedelec.h"
 
-PetscErrorCode assemble_stiffness(DM dm, struct quadrature q, struct function_space fs, Mat *stiffness);
-PetscErrorCode assemble_mass(DM dm, struct quadrature q, struct function_space fs, Mat *mass);
-PetscErrorCode assemble_load(DM dm, struct quadrature q, struct function_space fs, Vec *load);
+PetscErrorCode assemble_system(DM, struct quadrature, struct function_space,
+                               Mat, Vec);
 
 #endif /* MATRIX_H */
