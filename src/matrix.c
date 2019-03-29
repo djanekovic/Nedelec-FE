@@ -16,8 +16,9 @@ static PetscReal stiffness_matrix_2D(struct quadrature q,
     PetscReal local = 1/PetscAbsReal(detJ);
 
     for (PetscInt i = 0; i < q.size; i++) {
-        local *= q.pw[i * 3 + 2] * fs.cval[i * 3 + k] * fs.cval[i * 3 + l] *
-                 sctx->stiffness_function_2D(q.pw[i * 3 + 0], q.pw[i * 3 + 1]) *
+        int _3i = 3 * i;
+        local *= q.pw[_3i + 2] * fs.cval[_3i + k] * fs.cval[_3i + l] *
+                 sctx->stiffness_function_2D(q.pw[_3i + 0], q.pw[_3i + 1]) *
                  sign_k * sign_l;
     }
 
@@ -36,11 +37,14 @@ static PetscReal mass_matrix_2D(struct quadrature q, PetscReal *invJ,
 
     //TODO: cleanup or maybe call blas, tradeoff?
     for (PetscInt i = 0; i < q.size; i++) {
+        int k_offset = k_ned * (q.size * 2) + i * 2;
+        int l_offset = l_ned * (q.size * 2) + i * 2;
         for (PetscInt j = 0; j < dim; j++) {
             double x = 0, y = 0;
-            for (PetscInt k = 0; j < dim; j++) {
-                x += invJ[j * 3 + k] * fs.val[k_ned * (q.size * 2) + i * 2 + j];
-                y += invJ[j * 3 + k] * fs.val[l_ned * (q.size * 2) + i * 2 + j];
+            int _j3 = j * 3;
+            for (PetscInt k = 0; k < dim; j++) {
+                x += invJ[_j3 + k] * fs.val[k_offset + j];
+                y += invJ[_j3 + k] * fs.val[l_offset + j];
             }
             local *= x * y;
         }
@@ -60,14 +64,18 @@ static PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
 
     //TODO: provjeri koliko je ovo sporije
     for (PetscInt i = 0; i < q.size; i++) {
+        int _2i = i * 2;
+        int _3i = i * 3;
         for (PetscInt j = 0; j < dim; j++) {
+            int val_offset = j * (q.size * 2) + _2i;
+            int _3j = j * 3;
             for (PetscInt k = 0; k < dim; k++) {
-                local += invJ[j * 3 + k] * fs.val[j * (q.size * 2) + i * 2 + k];
+                local += invJ[_3j + k] * fs.val[val_offset + k];
             }
         }
 
-        local *= q.pw[i * 3 + 2] * sign_k *
-                 sctx->load_function_2D(q.pw[i * 3 + 0], q.pw[i * 3 + 1]);
+        local *= q.pw[_3i + 2] * sign_k *
+                 sctx->load_function_2D(q.pw[_3i + 0], q.pw[_3i + 1]);
     }
 
     return local;
@@ -95,17 +103,18 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
         const PetscInt *edgelist;
         for (PetscInt c = cstart; c < cend; c++) {
             PetscReal v0, J[9], invJ[9], detJ;
-
-            ierr = DMPlexComputeCellGeometryAffineFEM(dm, c, &v0, (PetscReal *) &J, (PetscReal *) &invJ, &detJ); CHKERRQ(ierr);
+            ierr = DMPlexComputeCellGeometryAffineFEM(dm, c,
+                                                      &v0, (PetscReal *) &J,
+                                                      (PetscReal *) &invJ,
+                                                      &detJ);
+            CHKERRQ(ierr);
             ierr = DMPlexGetCone(dm, c, &edgelist); CHKERRQ(ierr);
-
             for (PetscInt k = 0; k < nedges; k++) {
                 PetscInt sign_k = sctx->signs[(c - cstart) * 3 + k];
                 row_indices[k] = edgelist[k] - estart;
                 for (PetscInt l = 0; l < nedges; l++) {
                     col_indices[l] = edgelist[l] - estart;
                     PetscInt sign_l = sctx->signs[(c - cstart) * 3 + l];
-
                     local[k][l] = stiffness_matrix_2D(q, fs, sctx, detJ,
                                                       sign_k, sign_l, k, l);
                     local[k][l] += mass_matrix_2D(q, invJ, fs, sctx, detJ,
@@ -113,8 +122,11 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
                 }
                 load[k] = load_vector_2D(q, invJ, fs, sctx, detJ, k, sign_k);
             }
-            ierr = MatSetValues(A, 3, row_indices, 3, col_indices, *local, ADD_VALUES); CHKERRQ(ierr);
-            ierr = VecSetValues(b, 3, row_indices, load, ADD_VALUES); CHKERRQ(ierr);
+            ierr = MatSetValues(A, 3, row_indices, 3, col_indices,
+                                *local, ADD_VALUES);
+            CHKERRQ(ierr);
+            ierr = VecSetValues(b, 3, row_indices, load, ADD_VALUES);
+            CHKERRQ(ierr);
         }
     } else {
         SETERRQ(PETSC_COMM_SELF, 56, "3D is currently not supported\n");
@@ -128,92 +140,3 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
 
     return (0);
 }
-
-/*
-#undef __FUNCT__
-#define __FUNCT__ "assemble_mass"
-PetscErrorCode assemble_mass(DM dm, struct quadrature q, struct function_space fs, Mat *mass) {
-    PetscInt dim, cstart, cend, estart, eend, nedges;
-    struct ctx *mctx;
-    const PetscInt *edgelist;
-
-    PetscErrorCode ierr = DMGetDimension(dm, &dim); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 0, &cstart, &cend); CHKERRQ(ierr);
-    ierr = DMPlexGetConeSize(dm, cstart, &nedges); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend); CHKERRQ(ierr);
-    ierr = DMGetApplicationContext(dm, (void **) &mctx); CHKERRQ(ierr);
-
-    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, eend - estart, eend - estart, 0, NULL, mass);
-    CHKERRQ(ierr);
-    ierr = MatSetOption(*mass, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE); CHKERRQ(ierr);
-
-    if (dim == 2) {
-        PetscInt row_indices[nedges], col_indices[nedges];
-        for (PetscInt c = cstart; c < cend; c++) {
-            PetscReal v0, J[9], invJ[9], detJ;
-            ierr = DMPlexComputeCellGeometryAffineFEM(dm, c, &v0, (PetscReal *) &J, (PetscReal *) &invJ, &detJ); CHKERRQ(ierr);
-            ierr = DMPlexGetCone(dm, c, &edgelist); CHKERRQ(ierr);
-            PetscReal local[nedges][nedges];
-
-            for (PetscInt k = 0; k < nedges; k++) {
-                row_indices[k] = edgelist[k] - estart;
-                for (PetscInt l = 0; l < nedges; l++) {
-                    col_indices[l] = edgelist[l] - estart;
-                }
-            }
-            ierr = MatSetValues(*mass, 3, row_indices, 3, col_indices,
-                    *local, ADD_VALUES); CHKERRQ(ierr);
-        }
-    } else {
-        SETERRQ(PETSC_COMM_SELF, 56, "3D is currently not supported\n");
-    }
-
-    MatAssemblyBegin(*mass, MAT_FINAL_ASSEMBLY);
-    MatAssemblyEnd(*mass, MAT_FINAL_ASSEMBLY);
-
-    return ierr;
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "assemble_load"
-//TODO: attach function eval to mesh_ctx
-PetscErrorCode assemble_load(DM dm, struct quadrature q, struct function_space fs, Vec *load) {
-    PetscInt dim, cstart, cend, estart, eend, nedges;
-    struct ctx *mctx;
-    const PetscInt *edgelist;
-
-    PetscErrorCode ierr = DMGetDimension(dm, &dim); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 0, &cstart, &cend); CHKERRQ(ierr);
-    ierr = DMPlexGetConeSize(dm, cstart, &nedges); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend); CHKERRQ(ierr);
-    ierr = DMGetApplicationContext(dm, (void **) &mctx); CHKERRQ(ierr);
-
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, eend - estart, load);
-    CHKERRQ(ierr);
-
-    if (dim == 2) {
-        PetscInt row_indices[nedges];
-        for (PetscInt c = cstart; c < cend; c++) {
-            PetscReal v0, J[9], invJ[9], detJ;
-            ierr = DMPlexComputeCellGeometryAffineFEM(dm, c, &v0, (PetscReal *) &J, (PetscReal *) &invJ, &detJ); CHKERRQ(ierr);
-            ierr = DMPlexGetCone(dm, c, &edgelist); CHKERRQ(ierr);
-            PetscReal local[nedges];
-
-            for (PetscInt k = 0; k < nedges; k++) {
-                row_indices[k] = edgelist[k] - estart;
-                }
-            }
-            ierr = VecSetValues(*load, 3, row_indices, local, ADD_VALUES); CHKERRQ(ierr);
-        }
-        VecAssemblyBegin(*load);
-        VecAssemblyEnd(*load);
-    } else {
-        SETERRQ(PETSC_COMM_SELF, 56, "3D is currently not supported\n");
-    }
-
-
-    return ierr;
-
-}
-
-*/

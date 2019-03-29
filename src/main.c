@@ -17,7 +17,7 @@ int main (int argc, char **argv)
     struct function_space fspace;
     struct quadrature q;
     DM dm;
-    Mat mass, stiffness;
+    Mat A;
     Vec load, x;
     KSP ksp; PC pc;
 
@@ -28,26 +28,30 @@ int main (int argc, char **argv)
 
     ierr = handle_cli_options(&sctx); CHKERRQ(ierr);
     ierr = generate_mesh(&sctx, &dm); CHKERRQ(ierr);
+
+    //TODO: change for parallel
+    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, sctx.eend - sctx.estart,
+                           sctx.eend - sctx.estart, 0, NULL, &A);
+    CHKERRQ(ierr);
+    //TODO: remove after good preallocation
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+    CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, sctx.eend - sctx.estart, &load);
+
     ierr = generate_quad(1, &q); CHKERRQ(ierr);
     ierr = nedelec_basis(q, &fspace); CHKERRQ(ierr);
 
     //in one function assemble all matrices
-    ierr = assemble_stiffness(dm, q, fspace, &stiffness); CHKERRQ(ierr);
-    MatView(stiffness, PETSC_VIEWER_STDOUT_WORLD);
-    ierr = assemble_mass(dm, q, fspace, &mass); CHKERRQ(ierr);
-    MatView(mass, PETSC_VIEWER_STDOUT_WORLD);
-    ierr = MatAXPY(stiffness, 1, mass, SAME_NONZERO_PATTERN); CHKERRQ(ierr);
+    ierr = assemble_system(dm, q, fspace, A, load); CHKERRQ(ierr);
 
-    ierr = assemble_load(dm, q, fspace, &load); CHKERRQ(ierr);
     ierr = VecDuplicate(load, &x); CHKERRQ(ierr);
 
     ierr = KSPCreate(PETSC_COMM_WORLD, &ksp); CHKERRQ(ierr);
-    ierr = KSPSetOperators(ksp, stiffness, stiffness);
+    ierr = KSPSetOperators(ksp, A, A);
     ierr = KSPSolve(ksp, load, x);
     VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
-    ierr = MatDestroy(&mass); CHKERRQ(ierr);
-    ierr = MatDestroy(&stiffness); CHKERRQ(ierr);
+    ierr = MatDestroy(&A); CHKERRQ(ierr);
 
     ierr = DMDestroy(&dm); CHKERRQ(ierr);
 
