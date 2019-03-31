@@ -53,6 +53,7 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
     sctx->eend = eend;
     sctx->vstart = vstart;
     sctx->vend = vend;
+    sctx->nelems = (cend - cstart);
 
     /* alloc signs matrix */
     ierr = PetscMalloc1(edgenum * (cend - cstart), &sctx->signs); CHKERRQ(ierr);
