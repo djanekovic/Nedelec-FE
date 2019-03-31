@@ -42,7 +42,7 @@ static PetscReal mass_matrix_2D(struct quadrature q, PetscReal *invJ,
         for (PetscInt j = 0; j < dim; j++) {
             double x = 0, y = 0;
             int _j3 = j * 3;
-            for (PetscInt k = 0; k < dim; j++) {
+            for (PetscInt k = 0; k < dim; k++) {
                 x += invJ[_j3 + k] * fs.val[k_offset + j];
                 y += invJ[_j3 + k] * fs.val[l_offset + j];
             }

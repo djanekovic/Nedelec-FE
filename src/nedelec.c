@@ -13,7 +13,7 @@ PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace)
     ierr = PetscMalloc1(3 * M * 1, &fspace->cval); CHKERRQ(ierr);
 
     for (PetscInt i = 0; i < M; i++) {
-        int _i3 = 3 * i;
+        int _3i = 3 * i;
         int offset_0 = 0 * (M * 2) + i * 2;
         int offset_1 = 1 * (M * 2) + i * 2;
         int offset_2 = 2 * (M * 2) + i * 2;
