@@ -86,11 +86,11 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
             }
             ierr = MatSetValue(sctx->G,
                                edgelist[i]-estart, nodes[0]-vstart,
-                               1, INSERT_VALUES);
+                               -1, INSERT_VALUES);
             CHKERRQ(ierr);
             MatSetValue(sctx->G,
                         edgelist[i]-estart, nodes[1]-vstart,
-                        -1, INSERT_VALUES);
+                        1, INSERT_VALUES);
             CHKERRQ(ierr);
         }
     }
