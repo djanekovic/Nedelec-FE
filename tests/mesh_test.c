@@ -76,9 +76,7 @@ int main(int argc, char **argv)
         cmocka_unit_test(test_discrete_gradient),
     };
 
-    cmocka_run_group_tests(tests, init_petsc, finalize_petsc);
-
-    return 0;
+    return cmocka_run_group_tests(tests, init_petsc, finalize_petsc);
 }
 
 static int init_petsc(void **data)
