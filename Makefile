@@ -7,11 +7,14 @@ src = $(wildcard ./src/*.c)
 obj = $(src:.c=.o)
 
 # Add your tests here
-test_files = mesh
+test_files = mesh matrix
 
 # Add object files and source files for compilation here
 test_mesh_src = ./src/mesh.c ./tests/mesh_test.c
 test_mesh_obj = $(test_mesh_src:.c=.o)
+
+test_matrix_src = ./tests/matrix_test.c ./src/nedelec.c ./src/quadrature.c
+test_matrix_obj = $(test_matrix_src:.c=.o)
 
 # Append previously defined object files here
 test_obj = $(test_mesh_obj)
@@ -30,6 +33,9 @@ tests: $(test_files)
 
 mesh: $(test_mesh_obj) chkopts
 	-${CLINKER} -o bin/tests/$@ $(test_mesh_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
+
+matrix: $(test_matrix_obj) chkopts
+	-${CLINKER} -o bin/tests/$@ $(test_matrix_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
 
 clean::
 	$(RM) $(obj) $(test_obj)
