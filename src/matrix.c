@@ -6,7 +6,7 @@
 #define F_x 1.0
 #define F_y 1.0
 
-/** CINI SE OK
+/**
  * Compute stiffness matrix for first order Nedelec element in 2D
  *
  * 1/|det Bk| \int f(x,y) * sign_k * curl_ned_k * sign_l * curl_sign_l dx
@@ -66,26 +66,24 @@ static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
                                 PetscInt k, PetscInt sign_k)
 {
     //TODO: Dario, provjeri matematiku ovdje
-    PetscReal local = PetscAbsReal(detJ);
-    PetscInt dim = sctx->dim;
+    PetscReal local = PetscAbsReal(detJ) * sign_k;
+    PetscReal sum = 0;
 
-    //TODO: provjeri koliko je ovo sporije
+    PetscReal f_x = 1;
+    PetscReal f_y = 1;
+
+    //TODO: implement better handling of vector functions
+    //Transpose matrix, multiply with vector and then again with vector
     for (PetscInt i = 0; i < q.size; i++) {
-        int _2i = i * 2;
-        int _3i = i * 3;
-        for (PetscInt j = 0; j < dim; j++) {
-            int val_offset = j * (q.size * 2) + _2i;
-            int _3j = j * 3;
-            for (PetscInt k = 0; k < dim; k++) {
-                local += invJ[_3j + k] * fs.val[val_offset + k];
-            }
-        }
-
-        local *= q.pw[_3i + 2] * sign_k *
-                 sctx->load_function_2D(q.pw[_3i + 0], q.pw[_3i + 1]);
+        int k_offset = k * (q.size * 2) + i * 2;
+        PetscReal _mvv = invJ[0] * fs.val[k_offset + 0] * f_x
+                       + invJ[3] * fs.val[k_offset + 1] * f_x
+                       + invJ[2] * fs.val[k_offset + 0] * f_y
+                       + invJ[1] * fs.val[k_offset + 1] * f_y;
+        sum += q.pw[i * 3 + 2] * _mvv;
     }
 
-    return local;
+    return local * sum;
 }
 
 /**
