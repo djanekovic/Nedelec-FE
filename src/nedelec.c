@@ -1,4 +1,4 @@
-#include <petscmat.h>
+#include <petsc.h>
 
 #include "nedelec.h"
 

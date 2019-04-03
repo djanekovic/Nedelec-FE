@@ -55,7 +55,7 @@ PetscErrorCode generate_quad(PetscInt order, struct quadrature *q)
     }
 
     ierr = PetscMalloc1(size, &q->pw); CHKERRQ(ierr);
-    ierr = PetscMemcpy(q->pw, tmp, size * sizeof(PetscScalar)); CHKERRQ(ierr);
+    ierr = PetscMemcpy(q->pw, tmp, size * sizeof(PetscReal)); CHKERRQ(ierr);
     q->order = order;
     q->size = size/3;
 

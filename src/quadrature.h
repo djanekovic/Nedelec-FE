@@ -91,7 +91,7 @@
  * .size is number of rows in pw matrix.
  */
 struct quadrature {
-    PetscScalar *pw;
+    PetscReal *pw;
     PetscInt order;
     PetscInt size;
 };

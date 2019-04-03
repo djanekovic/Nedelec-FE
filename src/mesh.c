@@ -41,7 +41,6 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
     CHKERRQ(ierr);
 
     ierr = mark_boundary_faces(*dm); CHKERRQ(ierr);
-    ierr = debug_print(*dm); CHKERRQ(ierr);
 
     DMPlexGetHeightStratum(*dm, 0, &cstart, &cend);
     DMPlexGetHeightStratum(*dm, 1, &estart, &eend);
