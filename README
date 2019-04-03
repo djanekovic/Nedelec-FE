@@ -2,7 +2,24 @@ FEM assembly routines for Nedelec elements
 ==========================================
 
 Code in this repository is heavily inspired by [1]. Assembly routines use
-PETSc as backend.
+PETSc library as backend. To compile the code you need PETSc installed and
+setup with Triangle/ctetgen.
+
+Compiling
+=========
+
+To compile the code just run:
+
+$ make
+
+Make will generate ./bin/ folder with eddy executable. In order to run and
+compile tests run:
+
+$ make tests
+
+Tests are located in ./bin/tests/ folder. Tests are currently tested only with
+one process.
+
 
 [1] - Fast MATLAB assembly of FEM matrices in 2D and 3D: Edge elements,
       I.Anjam, J.Valdman, 2015
