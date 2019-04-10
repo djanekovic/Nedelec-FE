@@ -48,13 +48,12 @@ static inline PetscReal mass_matrix_2D(struct quadrature q, PetscReal *C,
 
     //TODO: cleanup or maybe call blas, tradeoff?
     for (PetscInt i = 0; i < q.size; i++) {
-        int k_offset = k_ned * (q.size * 2) + i * 2;
-        int l_offset = l_ned * (q.size * 2) + i * 2;
+        int k_off = k_ned * (q.size * 2) + i * 2;
+        int l_off = l_ned * (q.size * 2) + i * 2;
 
-        PetscReal _mvv = C[0] * fs.val[k_offset + 0] * fs.val[l_offset + 0]
-                       + C[1] * fs.val[k_offset + 1] * fs.val[l_offset + 0]
-                       + C[2] * fs.val[k_offset + 0] * fs.val[l_offset + 1]
-                       + C[3] * fs.val[k_offset + 1] * fs.val[l_offset + 1];
+		PetscReal __x = C[0] * fs.val[k_off + 0] + C[1] * fs.val[k_off + 1];
+		PetscReal __y = C[2] * fs.val[k_off + 0] + C[3] * fs.val[k_off + 1];
+        PetscReal _mvv = __x * fs.val[l_off + 0] + __y * fs.val[l_off + 1];
         sum += q.pw[i * 3 + 2] * _mvv
              * sctx->mass_function_2D(q.pw[i * 3 + 0], q.pw[i * 3 + 1]);
     }
@@ -93,9 +92,9 @@ static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
 static inline void _invBk_invBkT_2D(PetscReal *invBk, PetscReal *res)
 {
     res[0] = invBk[0] * invBk[0] + invBk[1] * invBk[1]; /* a^2 + b^2 */
-    res[1] = invBk[0] * invBk[3] + invBk[2] * invBk[4]; /* ac + bd */
+    res[1] = invBk[0] * invBk[2] + invBk[1] * invBk[3]; /* ac + bd */
     res[2] = res[1];
-    res[4] = invBk[3] * invBk[3] + invBk[4] * invBk[4]; /* c^2 + d^2 */
+    res[3] = invBk[2] * invBk[2] + invBk[3] * invBk[3]; /* c^2 + d^2 */
 }
 
 #undef __FUNCT__
