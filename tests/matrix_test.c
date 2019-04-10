@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
+#include <math.h>
 #include <cmocka.h>
 
 //TODO: ugly hack because methods I want to test are static...
@@ -10,6 +11,9 @@
 #include "../src/quadrature.h"
 #include "../src/nedelec.h"
 #include "../src/util.h"
+
+#define assert_double(actual, expected, eps) \
+        assert_true(abs(actual - expected) < eps)
 
 static int init_data(void **data);
 static int cleanup(void **data);
@@ -51,7 +55,7 @@ static int init_data(void **data)
     if (tctx == NULL) {
         goto malloc_failed;
     }
-    ierr = generate_quad(1, &tctx->q); CHKERRQ(ierr);
+    ierr = generate_quad(2, &tctx->q); CHKERRQ(ierr);
     ierr = nedelec_basis(tctx->q, &tctx->fs); CHKERRQ(ierr);
     tctx->sctx.dim = 2;
     tctx->sctx.stiffness_function_2D = one;
@@ -72,14 +76,32 @@ static int cleanup(void **data)
     return 0;
 }
 
-//TODO: napiši pametnije testove i na papiru provjeri rezultat
 static void test_local_stiffness(void **data)
 {
+    double delta = 0.0001;
     struct test_ctx *tctx = *data;
+    PetscReal r;
 
-    PetscReal res = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, 0.25, -1, 1, 2, 1);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, 0.25, 1, 1, 1, 1);
+    assert_double(r, 8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, 0.25, 1, -1, 1, 2);
+    assert_double(r, -8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, 0.25, -1, 1, 1, 3);
+    assert_double(r, -8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, 0.25, -1, -1, 2, 1);
+    assert_double(r, 8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, -0.25, 1, 1, 2, 2);
+    assert_double(r, 8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, -0.25, 1, -1, 2, 3);
+    assert_double(r, -8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, -0.25, -1, 1, 3, 1);
+    assert_double(r, -8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, -0.25, -1, -1, 3, 2);
+    assert_double(r, 8.0, delta);
+    r = stiffness_matrix_2D(tctx->q, tctx->fs, &tctx->sctx, -0.25, 1, 1, 3, 3);
+    assert_double(r, 8.0, delta);
 
-    printf("%lf\n", res);
+    //TODO: test gaussian and with custom const function
 }
 
 //TODO: smisli testove

@@ -21,13 +21,15 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
     PetscReal local = 1/PetscAbsReal(detJ) * sign_l * sign_k;
     PetscReal sum = 0;
 
+    /** This is used only if f(x, y) is non constant
     for (PetscInt i = 0; i < q.size; i++) {
         int _3i = 3 * i;
         sum += q.pw[_3i + 2] * fs.cval[_3i + k] * fs.cval[_3i + l]
              * sctx->stiffness_function_2D(q.pw[_3i + 0], q.pw[_3i + 1]);
     }
-
-    return local * sum;
+    */
+    //TODO: handle stiffness_const()
+    return local * 0.5 * fs.cval[k] * fs.cval[l];
 }
 
 /**
@@ -65,7 +67,6 @@ static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
                                 struct ctx *sctx, PetscReal detJ,
                                 PetscInt k, PetscInt sign_k)
 {
-    //TODO: Dario, provjeri matematiku ovdje
     PetscReal local = PetscAbsReal(detJ) * sign_k;
     PetscReal sum = 0;
 
