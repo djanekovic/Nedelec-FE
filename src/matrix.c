@@ -1,4 +1,5 @@
 #include <petsc.h>
+#include <assert.h>
 
 #include "matrix.h"
 #include "mesh.h"
@@ -19,7 +20,6 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
                                      PetscInt k, PetscInt l)
 {
     PetscReal local = 1/PetscAbsReal(detJ) * sign_l * sign_k;
-    PetscReal sum = 0;
 
     /** This is used only if f(x, y) is non constant
     for (PetscInt i = 0; i < q.size; i++) {
@@ -29,7 +29,7 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
     }
     */
     //TODO: handle stiffness_const()
-    return local * 0.5 * fs.cval[k] * fs.cval[l];
+    return local * 1/2 * fs.cval[k] * fs.cval[l];
 }
 
 /**
@@ -46,19 +46,17 @@ static inline PetscReal mass_matrix_2D(struct quadrature q, PetscReal *C,
     PetscReal local = PetscAbsReal(detJ) * sign_k * sign_l;
     PetscReal sum = 0;
 
-    //TODO: cleanup or maybe call blas, tradeoff?
     for (PetscInt i = 0; i < q.size; i++) {
         int k_off = k_ned * (q.size * 2) + i * 2;
         int l_off = l_ned * (q.size * 2) + i * 2;
 
-		PetscReal __x = C[0] * fs.val[k_off + 0] + C[1] * fs.val[k_off + 1];
-		PetscReal __y = C[2] * fs.val[k_off + 0] + C[3] * fs.val[k_off + 1];
+    	PetscReal __x = C[0] * fs.val[k_off + 0] + C[1] * fs.val[k_off + 1];
+    	PetscReal __y = C[2] * fs.val[k_off + 0] + C[3] * fs.val[k_off + 1];
         PetscReal _mvv = __x * fs.val[l_off + 0] + __y * fs.val[l_off + 1];
-        sum += q.pw[i * 3 + 2] * _mvv
-             * sctx->mass_function_2D(q.pw[i * 3 + 0], q.pw[i * 3 + 1]);
+        sum += q.pw[i * 3 + 2] * _mvv * 1;
     }
 
-    return local * sum;
+    return local * sum * 1/2;
 }
 
 static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
@@ -154,8 +152,8 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
 
     //TODO: pogledaj u dokumentaciji
     MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-    VecAssemblyBegin(b);
     MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
+    VecAssemblyBegin(b);
     VecAssemblyEnd(b);
 
     return (0);
