@@ -17,7 +17,7 @@ test_matrix_src = ./tests/matrix_test.c ./src/nedelec.c ./src/quadrature.c
 test_matrix_obj = $(test_matrix_src:.c=.o)
 
 # Append previously defined object files here
-test_obj = $(test_mesh_obj)
+test_obj = $(test_mesh_obj) $(test_matrix_obj)
 
 # Link with CMocka for tests
 LDFLAGS_TEST = -lcmocka
