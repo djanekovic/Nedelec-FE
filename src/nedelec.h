@@ -9,6 +9,7 @@ struct function_space {
     PetscInt nbasis;
 };
 
-PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace);
+PetscErrorCode nedelec_basis(struct quadrature q,
+                             struct function_space *fspace);
 
 #endif /* NEDELEC_H */

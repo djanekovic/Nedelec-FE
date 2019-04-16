@@ -1,6 +1,6 @@
 #include <petsc.h>
 
-//TODO: inline this
+// TODO: inline this
 PetscScalar constant_2D(PetscReal x, PetscReal y)
 {
     return 1.0;

@@ -1,9 +1,9 @@
 #ifndef QUADRATURE_H
 #define QUADRATURE_H
 
-
 /* Gaussian quadrature rule preprocessor defines */
 
+// clang-format off
 #define QUAD_2D_1 0.33333333333333, 0.33333333333333, 1.00000000000000
 #define QUAD_2D_1_LEN 3
 
@@ -81,6 +81,8 @@
                   0.26311282963464, 0.00839477740996, 0.02723031417443, \
                   0.00839477740996, 0.72849239295540, 0.02723031417443
 #define QUAD_2D_8_LEN 48
+
+// clang-format on
 
 /**
  * .pw in 2D matrix:

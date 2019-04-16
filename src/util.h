@@ -3,12 +3,12 @@
 
 /* Solver context definition */
 struct ctx {
-    PetscInt dim;           /* problem dimension        */
-    PetscInt ref;           /* refinement flag          */
-    PetscInt nelems;        /* number of elements       */
-    PetscInt quad_order;    /* quadrature order         */
+    PetscInt dim;        /* problem dimension        */
+    PetscInt ref;        /* refinement flag          */
+    PetscInt nelems;     /* number of elements       */
+    PetscInt quad_order; /* quadrature order         */
 
-    Mat G;                  /* discrete gradient matrix */
+    Mat G; /* discrete gradient matrix */
     // možda overkill...
     int *signs;
 
@@ -19,7 +19,7 @@ struct ctx {
     PetscInt vstart;
     PetscInt vend;
 
-    //TODO: complex?
+    // TODO: complex?
     PetscScalar (*stiffness_function_2D)(PetscReal x, PetscReal y);
     PetscScalar (*stiffness_function_3D)(PetscReal x, PetscReal y, PetscReal z);
     PetscScalar (*mass_function_2D)(PetscReal x, PetscReal y);

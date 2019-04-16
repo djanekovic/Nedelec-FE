@@ -5,12 +5,15 @@
 /**
  * M represents number of quadrature points
  */
-PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace) {
+PetscErrorCode nedelec_basis(struct quadrature q, struct function_space *fspace)
+{
     PetscInt M = q.size;
 
     /* three different M x 2 matrix */
-    PetscErrorCode ierr = PetscMalloc1(3 * M * 2, &fspace->val); CHKERRQ(ierr);
-    ierr = PetscMalloc1(3 * M * 1, &fspace->cval); CHKERRQ(ierr);
+    PetscErrorCode ierr = PetscMalloc1(3 * M * 2, &fspace->val);
+    CHKERRQ(ierr);
+    ierr = PetscMalloc1(3 * M * 1, &fspace->cval);
+    CHKERRQ(ierr);
 
     for (PetscInt i = 0; i < M; i++) {
         int _3i = 3 * i;

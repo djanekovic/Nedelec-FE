@@ -1,6 +1,6 @@
 #include <petscdmplex.h>
-#include "petscdmshell.h"
 #include <petscmat.h>
+#include "petscdmshell.h"
 
 #include "util.h"
 
@@ -20,7 +20,8 @@ static PetscErrorCode free_ctx(void **data);
 
 #undef __FUNCT__
 #define __FUNCT__ "generate_mesh"
-PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
+PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
+{
     PetscErrorCode ierr;
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;
 
@@ -40,7 +41,8 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
                                NULL, NULL, NULL, PETSC_TRUE, dm);
     CHKERRQ(ierr);
 
-    ierr = mark_boundary_faces(*dm); CHKERRQ(ierr);
+    ierr = mark_boundary_faces(*dm);
+    CHKERRQ(ierr);
 
     DMPlexGetHeightStratum(*dm, 0, &cstart, &cend);
     DMPlexGetHeightStratum(*dm, 1, &estart, &eend);
@@ -55,10 +57,10 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
     sctx->nelems = (cend - cstart);
 
     /* alloc signs matrix */
-    ierr = PetscMalloc1(edgenum * (cend - cstart), &sctx->signs); CHKERRQ(ierr);
-    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD,
-                           eend-estart, vend-vstart,
-                           2, NULL, &sctx->G);
+    ierr = PetscMalloc1(edgenum * (cend - cstart), &sctx->signs);
+    CHKERRQ(ierr);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, eend - estart, vend - vstart, 2,
+                           NULL, &sctx->G);
     CHKERRQ(ierr);
 
     /**
@@ -73,7 +75,8 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
         PetscInt offset = (c - cstart) * 3;
         const PetscInt *edgelist;
         const PetscInt *orient;
-        ierr = DMPlexGetCone(*dm, c, &edgelist); CHKERRQ(ierr);
+        ierr = DMPlexGetCone(*dm, c, &edgelist);
+        CHKERRQ(ierr);
         ierr = DMPlexGetConeOrientation(*dm, c, &orient);
         for (PetscInt i = 0; i < edgenum; i++) {
             const PetscInt *nodes;
@@ -83,21 +86,21 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm) {
             } else {
                 sctx->signs[offset + i] = (orient[i] >= 0) ? -1 : 1;
             }
-            ierr = MatSetValue(sctx->G,
-                               edgelist[i]-estart, nodes[0]-vstart,
+            ierr = MatSetValue(sctx->G, edgelist[i] - estart, nodes[0] - vstart,
                                -1, INSERT_VALUES);
             CHKERRQ(ierr);
-            MatSetValue(sctx->G,
-                        edgelist[i]-estart, nodes[1]-vstart,
-                        1, INSERT_VALUES);
+            MatSetValue(sctx->G, edgelist[i] - estart, nodes[1] - vstart, 1,
+                        INSERT_VALUES);
             CHKERRQ(ierr);
         }
     }
 
     MatAssemblyBegin(sctx->G, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(sctx->G, MAT_FINAL_ASSEMBLY);
-    ierr = DMSetApplicationContext(*dm, sctx); CHKERRQ(ierr);
-    ierr = DMSetApplicationContextDestroy(*dm, (PetscErrorCode (*)(void **data)) free_ctx);
+    ierr = DMSetApplicationContext(*dm, sctx);
+    CHKERRQ(ierr);
+    ierr = DMSetApplicationContextDestroy(
+        *dm, (PetscErrorCode(*)(void **data)) free_ctx);
 
     return (0);
 }
@@ -108,10 +111,14 @@ static PetscErrorCode mark_boundary_faces(DM dm)
 {
     DMLabel label;
 
-    PetscErrorCode ierr = DMCreateLabel(dm, "boundary"); CHKERRQ(ierr);
-    ierr = DMGetLabel(dm, "boundary", &label); CHKERRQ(ierr);
-    ierr = DMPlexMarkBoundaryFaces(dm, 1, label); CHKERRQ(ierr);
-    ierr = DMPlexLabelComplete(dm, label); CHKERRQ(ierr);
+    PetscErrorCode ierr = DMCreateLabel(dm, "boundary");
+    CHKERRQ(ierr);
+    ierr = DMGetLabel(dm, "boundary", &label);
+    CHKERRQ(ierr);
+    ierr = DMPlexMarkBoundaryFaces(dm, 1, label);
+    CHKERRQ(ierr);
+    ierr = DMPlexLabelComplete(dm, label);
+    CHKERRQ(ierr);
 
     return ierr;
 }
@@ -123,8 +130,10 @@ static PetscErrorCode free_ctx(void **data)
     PetscErrorCode ierr;
     struct ctx *sctx = (struct ctx *) *data;
 
-    ierr = MatDestroy(&sctx->G); CHKERRQ(ierr);
-    ierr = PetscFree(sctx->signs); CHKERRQ(ierr);
+    ierr = MatDestroy(&sctx->G);
+    CHKERRQ(ierr);
+    ierr = PetscFree(sctx->signs);
+    CHKERRQ(ierr);
 
     return ierr;
 }
@@ -152,7 +161,8 @@ static PetscErrorCode debug_print(DM dm)
             const PetscInt *norient;
             DMPlexGetCone(dm, edges[i], &nodes);
             DMPlexGetConeOrientation(dm, edges[i], &norient);
-            printf("%d %d %d: %d - %d\n", c, edges[i], orient[i], nodes[0], nodes[1]);
+            printf("%d %d %d: %d - %d\n", c, edges[i], orient[i], nodes[0],
+                   nodes[1]);
         }
     }
     return 0;

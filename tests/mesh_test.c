@@ -1,13 +1,16 @@
-#include <petsc.h>
 #include <err.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
+
 #include <cmocka.h>
+#include <petsc.h>
 
 #include "../src/mesh.h"
 
 #define EPSILON 0.0001
+
+// clang-format off
 #define SIGNS_TEST_DATA  1,  1, -1, \
                          1, -1,  1, \
                         -1,  1, -1, \
@@ -50,7 +53,7 @@
                         1.0, -1.0, \
                         1.0, -1.0, \
                         1.0, -1.0,
-
+// clang-format on
 
 const char *help = "Unit tests for meshing utility";
 
@@ -101,7 +104,8 @@ static int init_petsc(void **data)
     sctx->dim = 2;
     sctx->ref = 0;
 
-    ierr = generate_mesh(sctx, dm); CHKERRQ(ierr);
+    ierr = generate_mesh(sctx, dm);
+    CHKERRQ(ierr);
 
     tctx->sctx = sctx;
     tctx->dm = dm;
@@ -115,7 +119,7 @@ malloc_failed:
 
 static void test_signs(void **data)
 {
-    int test_signs[] = {SIGNS_TEST_DATA};
+    int test_signs[] = { SIGNS_TEST_DATA };
     struct test_ctx *tctx = *data;
     struct ctx *sctx = tctx->sctx;
     assert_non_null(sctx->signs);
@@ -130,8 +134,8 @@ static void test_signs(void **data)
 
 static void test_discrete_gradient(void **data)
 {
-    PetscInt test_cols[] = {COLS_TEST_DATA};
-    PetscScalar test_vals[] = {VALS_TEST_DATA};
+    PetscInt test_cols[] = { COLS_TEST_DATA };
+    PetscScalar test_vals[] = { VALS_TEST_DATA };
     struct test_ctx *tctx = *data;
     struct ctx *sctx = tctx->sctx;
 

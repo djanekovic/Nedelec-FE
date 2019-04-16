@@ -1,5 +1,5 @@
-#include <petsc.h>
 #include <assert.h>
+#include <petsc.h>
 
 #include "matrix.h"
 #include "mesh.h"
@@ -14,12 +14,12 @@
  * 1/|det Bk| * sign_k * sign_l \int f(x, y) * curl_ned_k * curl_sign_l dx
  */
 static inline PetscReal stiffness_matrix_2D(struct quadrature q,
-                                     struct function_space fs,
-                                     struct ctx *sctx, PetscReal detJ,
-                                     PetscInt sign_k, PetscInt sign_l,
-                                     PetscInt k, PetscInt l)
+                                            struct function_space fs,
+                                            struct ctx *sctx, PetscReal detJ,
+                                            PetscInt sign_k, PetscInt sign_l,
+                                            PetscInt k, PetscInt l)
 {
-    PetscReal local = 1/PetscAbsReal(detJ) * sign_l * sign_k;
+    PetscReal local = 1 / PetscAbsReal(detJ) * sign_l * sign_k;
 
     /** This is used only if f(x, y) is non constant
     for (PetscInt i = 0; i < q.size; i++) {
@@ -28,8 +28,8 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
              * sctx->stiffness_function_2D(q.pw[_3i + 0], q.pw[_3i + 1]);
     }
     */
-    //TODO: handle stiffness_const()
-    return local * 1/2.0 * fs.cval[k] * fs.cval[l];
+    // TODO: handle stiffness_const()
+    return local * 0.5 * fs.cval[k] * fs.cval[l];
 }
 
 /**
@@ -38,10 +38,10 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
  * |det Bk| * sign_k * sign_l \int Bk * Bk^-T * ned_k * ned_l dx
  */
 static inline PetscReal mass_matrix_2D(struct quadrature q, PetscReal *C,
-                                struct function_space fs,
-                                struct ctx *sctx, PetscReal detJ,
-                                PetscInt sign_k, PetscInt sign_l,
-                                PetscInt k_ned, PetscInt l_ned)
+                                       struct function_space fs,
+                                       struct ctx *sctx, PetscReal detJ,
+                                       PetscInt sign_k, PetscInt sign_l,
+                                       PetscInt k_ned, PetscInt l_ned)
 {
     PetscReal local = PetscAbsReal(detJ) * sign_k * sign_l;
     PetscReal sum = 0;
@@ -50,19 +50,19 @@ static inline PetscReal mass_matrix_2D(struct quadrature q, PetscReal *C,
         int k_off = k_ned * (q.size * 2) + i * 2;
         int l_off = l_ned * (q.size * 2) + i * 2;
 
-    	PetscReal __x = C[0] * fs.val[k_off + 0] + C[1] * fs.val[k_off + 1];
-    	PetscReal __y = C[2] * fs.val[k_off + 0] + C[3] * fs.val[k_off + 1];
+        PetscReal __x = C[0] * fs.val[k_off + 0] + C[1] * fs.val[k_off + 1];
+        PetscReal __y = C[2] * fs.val[k_off + 0] + C[3] * fs.val[k_off + 1];
         PetscReal _mvv = __x * fs.val[l_off + 0] + __y * fs.val[l_off + 1];
         sum += q.pw[i * 3 + 2] * _mvv * 1;
     }
 
-    return local * sum * 1/2.0;
+    return local * sum * 0.5;
 }
 
 static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
-                                struct function_space fs,
-                                struct ctx *sctx, PetscReal detJ,
-                                PetscInt k, PetscInt sign_k)
+                                       struct function_space fs,
+                                       struct ctx *sctx, PetscReal detJ,
+                                       PetscInt k, PetscInt sign_k)
 {
     PetscReal local = PetscAbsReal(detJ) * sign_k;
     PetscReal sum = 0;
@@ -70,17 +70,19 @@ static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
     PetscReal f_x = 1.0;
     PetscReal f_y = 1.0;
 
-    //TODO: implement better handling of vector functions
-    //Transpose matrix, multiply with vector and then again with vector
+    // TODO: implement better handling of vector functions
+    // Transpose matrix, multiply with vector and then again with vector
     for (PetscInt i = 0; i < q.size; i++) {
         int k_off = k * (q.size * 2) + i * 2;
-		PetscReal _x = invJ[0] * fs.val[k_off + 0] + invJ[2] * fs.val[k_off + 1];
-		PetscReal _y = invJ[1] * fs.val[k_off + 0] + invJ[3] * fs.val[k_off + 1];
+        PetscReal _x =
+            invJ[0] * fs.val[k_off + 0] + invJ[2] * fs.val[k_off + 1];
+        PetscReal _y =
+            invJ[1] * fs.val[k_off + 0] + invJ[3] * fs.val[k_off + 1];
         PetscReal _mvv = _x * f_x + _y * f_y;
         sum += q.pw[i * 3 + 2] * _mvv;
     }
 
-    return local * sum * 1/2.0;
+    return local * sum * 0.5;
 }
 
 /**
@@ -96,32 +98,36 @@ static inline void _invBk_invBkT_2D(PetscReal *invBk, PetscReal *res)
 
 #undef __FUNCT__
 #define __FUNCT__ "assemble_stiffness"
-PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space fs,
-                               Mat A, Vec b)
+PetscErrorCode assemble_system(DM dm, struct quadrature q,
+                               struct function_space fs, Mat A, Vec b)
 {
     PetscInt dim, cstart, cend, estart, eend, nedges;
     struct ctx *sctx;
 
-    PetscErrorCode ierr = DMGetDimension(dm, &dim); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 0, &cstart, &cend); CHKERRQ(ierr);
-    ierr = DMPlexGetConeSize(dm, cstart, &nedges); CHKERRQ(ierr);
-    ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend); CHKERRQ(ierr);
-    ierr = DMGetApplicationContext(dm, (void **) &sctx); CHKERRQ(ierr);
+    PetscErrorCode ierr = DMGetDimension(dm, &dim);
+    CHKERRQ(ierr);
+    ierr = DMPlexGetHeightStratum(dm, 0, &cstart, &cend);
+    CHKERRQ(ierr);
+    ierr = DMPlexGetConeSize(dm, cstart, &nedges);
+    CHKERRQ(ierr);
+    ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend);
+    CHKERRQ(ierr);
+    ierr = DMGetApplicationContext(dm, (void **) &sctx);
+    CHKERRQ(ierr);
 
-    //TODO: napravi nedelec objekt koji je ispod function_space i koji ima
-    //assemble_2D i assemble_3D function pointere
+    // TODO: napravi nedelec objekt koji je ispod function_space i koji ima
+    // assemble_2D i assemble_3D function pointere
     if (dim == 2) {
         PetscReal local[nedges][nedges], load[nedges];
         PetscInt row_indices[nedges], col_indices[nedges];
         const PetscInt *edgelist;
         for (PetscInt c = cstart; c < cend; c++) {
             PetscReal v0, Bk[4], invBk[4], detBk, _tmp_matrix[4];
-            ierr = DMPlexComputeCellGeometryAffineFEM(dm, c,
-                                                      &v0, (PetscReal *) &Bk,
-                                                      (PetscReal *) &invBk,
-                                                      &detBk);
+            ierr = DMPlexComputeCellGeometryAffineFEM(
+                dm, c, &v0, (PetscReal *) &Bk, (PetscReal *) &invBk, &detBk);
             CHKERRQ(ierr);
-            ierr = DMPlexGetCone(dm, c, &edgelist); CHKERRQ(ierr);
+            ierr = DMPlexGetCone(dm, c, &edgelist);
+            CHKERRQ(ierr);
 
             _invBk_invBkT_2D(invBk, _tmp_matrix);
 
@@ -139,8 +145,8 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
                 }
                 load[k] = load_vector_2D(q, invBk, fs, sctx, detBk, k, sign_k);
             }
-            ierr = MatSetValues(A, 3, row_indices, 3, col_indices,
-                                *local, ADD_VALUES);
+            ierr = MatSetValues(A, 3, row_indices, 3, col_indices, *local,
+                                ADD_VALUES);
             CHKERRQ(ierr);
             ierr = VecSetValues(b, 3, row_indices, load, ADD_VALUES);
             CHKERRQ(ierr);
@@ -149,7 +155,7 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q, struct function_space
         SETERRQ(PETSC_COMM_SELF, 56, "3D is currently not supported\n");
     }
 
-    //TODO: pogledaj u dokumentaciji
+    // TODO: pogledaj u dokumentaciji
     MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     VecAssemblyBegin(b);

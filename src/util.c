@@ -1,13 +1,13 @@
 #include <petsc.h>
 #include <string.h>
 
-#include "util.h"
 #include "function.h"
-
+#include "util.h"
 
 #undef __FUNCT__
 #define __FUNCT__ "handle_cli_options"
-PetscErrorCode handle_cli_options(struct ctx *sctx) {
+PetscErrorCode handle_cli_options(struct ctx *sctx)
+{
     memset(sctx, 0, sizeof(*sctx));
 
     /* defaults */
