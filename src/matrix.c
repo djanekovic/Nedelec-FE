@@ -29,7 +29,7 @@ static inline PetscReal stiffness_matrix_2D(struct quadrature q,
     }
     */
     //TODO: handle stiffness_const()
-    return local * 1/2 * fs.cval[k] * fs.cval[l];
+    return local * 1/2.0 * fs.cval[k] * fs.cval[l];
 }
 
 /**
@@ -56,7 +56,7 @@ static inline PetscReal mass_matrix_2D(struct quadrature q, PetscReal *C,
         sum += q.pw[i * 3 + 2] * _mvv * 1;
     }
 
-    return local * sum * 1/2;
+    return local * sum * 1/2.0;
 }
 
 static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
@@ -67,21 +67,20 @@ static inline PetscReal load_vector_2D(struct quadrature q, PetscReal *invJ,
     PetscReal local = PetscAbsReal(detJ) * sign_k;
     PetscReal sum = 0;
 
-    PetscReal f_x = 1;
-    PetscReal f_y = 1;
+    PetscReal f_x = 1.0;
+    PetscReal f_y = 1.0;
 
     //TODO: implement better handling of vector functions
     //Transpose matrix, multiply with vector and then again with vector
     for (PetscInt i = 0; i < q.size; i++) {
-        int k_offset = k * (q.size * 2) + i * 2;
-        PetscReal _mvv = invJ[0] * fs.val[k_offset + 0] * f_x
-                       + invJ[3] * fs.val[k_offset + 1] * f_x
-                       + invJ[2] * fs.val[k_offset + 0] * f_y
-                       + invJ[1] * fs.val[k_offset + 1] * f_y;
+        int k_off = k * (q.size * 2) + i * 2;
+		PetscReal _x = invJ[0] * fs.val[k_off + 0] + invJ[2] * fs.val[k_off + 1];
+		PetscReal _y = invJ[1] * fs.val[k_off + 0] + invJ[3] * fs.val[k_off + 1];
+        PetscReal _mvv = _x * f_x + _y * f_y;
         sum += q.pw[i * 3 + 2] * _mvv;
     }
 
-    return local * sum;
+    return local * sum * 1/2.0;
 }
 
 /**

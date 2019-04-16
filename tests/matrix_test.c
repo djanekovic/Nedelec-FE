@@ -104,7 +104,7 @@ static void test_local_stiffness(void **data)
     //TODO: test gaussian and with custom const function
 }
 
-static inline PetscReal __compute_0_0(PetscReal *invBk)
+static inline PetscReal __compute_mass_0_0(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -114,7 +114,7 @@ static inline PetscReal __compute_0_0(PetscReal *invBk)
 	return 1/12.0 * res;
 }
 
-static inline PetscReal __compute_0_1(PetscReal *invBk)
+static inline PetscReal __compute_mass_0_1(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -127,7 +127,7 @@ static inline PetscReal __compute_0_1(PetscReal *invBk)
 	return res;
 }
 
-static inline PetscReal __compute_0_2(PetscReal *invBk)
+static inline PetscReal __compute_mass_0_2(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -141,7 +141,7 @@ static inline PetscReal __compute_0_2(PetscReal *invBk)
 }
 
 
-static inline PetscReal __compute_1_1(PetscReal *invBk)
+static inline PetscReal __compute_mass_1_1(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -153,7 +153,7 @@ static inline PetscReal __compute_1_1(PetscReal *invBk)
 	return res;
 }
 
-static inline PetscReal __compute_1_2(PetscReal *invBk)
+static inline PetscReal __compute_mass_1_2(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -166,7 +166,7 @@ static inline PetscReal __compute_1_2(PetscReal *invBk)
 	return res;
 }
 
-static inline PetscReal __compute_2_2(PetscReal *invBk)
+static inline PetscReal __compute_mass_2_2(PetscReal *invBk)
 {
 	PetscReal res;
 	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
@@ -178,25 +178,25 @@ static inline PetscReal __compute_2_2(PetscReal *invBk)
 	return res;
 }
 
-static PetscReal _compute_control(PetscReal *invBk, PetscReal detJ,
+static PetscReal _compute_mass_control(PetscReal *invBk, PetscReal detJ,
 										 int sign_k, int sign_l, int k, int l)
 {
 	PetscReal local = detJ * sign_k * sign_l;
 
 	if (k == 0 && l == 0) {
-		return local * __compute_0_0(invBk);
+		return local * __compute_mass_0_0(invBk);
 	} else if ((k == 0 && l == 1) || (l == 0 && k == 1)) {
-		return local * __compute_0_1(invBk);
+		return local * __compute_mass_0_1(invBk);
 	} else if ((k == 0 && l == 2) || (l == 2 && k == 0)) {
-		return local * __compute_0_2(invBk);
+		return local * __compute_mass_0_2(invBk);
 	} else if (k == 1 && l == 1) {
-		return local * __compute_1_1(invBk);
+		return local * __compute_mass_1_1(invBk);
 	} else if ((k == 1 && l == 2) || (k == 2 && l == 1)) {
-		return local * __compute_1_2(invBk);
+		return local * __compute_mass_1_2(invBk);
 	}
 
 	/* k = 2, l = 2 */
-	return local * __compute_2_2(invBk);
+	return local * __compute_mass_2_2(invBk);
 }
 
 static void test_local_mass(void **data)
@@ -215,7 +215,7 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
@@ -244,7 +244,7 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, l, k);
@@ -257,7 +257,7 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, l, k);
@@ -270,7 +270,7 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, l, k);
@@ -283,7 +283,7 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, l, k);
@@ -296,15 +296,100 @@ static void test_local_mass(void **data)
 	sign_k = sign_l = 1;
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, k, l);
-	control = _compute_control(invBk, detJ, sign_k, sign_l, k, l);
+	control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
 	assert_double(res, control);
 	res = mass_matrix_2D(tctx->q, _tmp_matrix, tctx->fs, &tctx->sctx,
 						 detJ, sign_k, sign_l, l, k);
 	assert_double(res, control);
 }
 
-//TODO: smisli testove
+static inline PetscReal __compute_load_0(PetscReal *invBk)
+{
+	PetscReal res;
+	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+
+	res =  (b - a)/6.0;
+	res += (d - c)/6.0;
+
+	return res;
+}
+
+static inline PetscReal __compute_load_1(PetscReal *invBk)
+{
+	PetscReal res;
+	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+
+	res = -(2*b + a)/6.0;
+	res -= (2*d + c)/6.0;
+
+	return res;
+}
+
+static inline PetscReal __compute_load_2(PetscReal *invBk)
+{
+	PetscReal res;
+	PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+
+	res =  (a + 2*b + 1)/12.0;
+	res += (c + 2*d + 1)/12.0;
+
+	return res;
+}
+
+static PetscReal _compute_load_control(PetscReal *invBk,
+							 PetscReal detJ, int sign_k, int k)
+{
+	PetscReal local = detJ * sign_k;
+
+	switch(k) {
+		case 0:
+			return local * __compute_load_0(invBk);
+		case 1:
+			return local * __compute_load_1(invBk);
+		case 2:
+		default:
+			return local * __compute_load_2(invBk);
+	}
+}
+
 static void test_local_load(void **data)
 {
     struct test_ctx *tctx = *data;
+	int k, sign_k;
+	PetscReal res, control, detJ = 0.25;
+	PetscReal invBk[4] = {1, 2, 3, 4};
+
+
+	/* Test k = 0 case and all possible detJ, sign_k cases */
+
+	k = 0;
+	sign_k = 1;
+	res = load_vector_2D(tctx->q, invBk, tctx->fs, &tctx->sctx,
+						 detJ, k, sign_k);
+	control = _compute_load_control(invBk, detJ, sign_k, k);
+	assert_double(res, control);
+	res = load_vector_2D(tctx->q, invBk, tctx->fs, &tctx->sctx,
+						 detJ * -1, k, sign_k);
+	assert_double(res, control * -1);
+	res = load_vector_2D(tctx->q, invBk, tctx->fs, &tctx->sctx,
+						 detJ, k, sign_k*-1);
+	assert_double(res, control * -1);
+
+
+	/* Test k = 1 */
+	k = 1;
+	sign_k = 1;
+	res = load_vector_2D(tctx->q, invBk, tctx->fs, &tctx->sctx,
+						 detJ, k, sign_k);
+	control = _compute_load_control(invBk, detJ, sign_k, k);
+	assert_double(res, control);
+
+
+	/* Test k = 2 */
+	k = 2;
+	sign_k = 1;
+	res = load_vector_2D(tctx->q, invBk, tctx->fs, &tctx->sctx,
+						 detJ, k, sign_k);
+	control = _compute_load_control(invBk, detJ, sign_k, k);
+	assert_double(res, control);
 }
