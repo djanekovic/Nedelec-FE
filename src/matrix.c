@@ -145,10 +145,10 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q,
                 }
                 load[k] = load_vector_2D(q, invBk, fs, sctx, detBk, k, sign_k);
             }
-            ierr = MatSetValues(A, 3, row_indices, 3, col_indices, *local,
+            ierr = MatSetValues(A, nedges, row_indices, nedges, col_indices, *local,
                                 ADD_VALUES);
             CHKERRQ(ierr);
-            ierr = VecSetValues(b, 3, row_indices, load, ADD_VALUES);
+            ierr = VecSetValues(b, nedges, row_indices, load, ADD_VALUES);
             CHKERRQ(ierr);
         }
     } else {
