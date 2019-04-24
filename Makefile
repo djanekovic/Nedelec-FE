@@ -24,17 +24,17 @@ LDFLAGS_TEST = -lcmocka
 
 
 .DEFAULT_GOAL := eddy
-eddy: $(obj) chkopts
+eddy: $(obj)
 	@mkdir -p bin/
 	-${CLINKER} -o bin/$@ $(obj) -g ${PETSC_LIB}
 
 tests: $(test_files)
 	@mkdir -p bin/tests
 
-mesh: $(test_mesh_obj) chkopts
+mesh: $(test_mesh_obj)
 	-${CLINKER} -o bin/tests/$@ $(test_mesh_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
 
-matrix: $(test_matrix_obj) chkopts
+matrix: $(test_matrix_obj)
 	-${CLINKER} -o bin/tests/$@ $(test_matrix_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
 
 clean::
