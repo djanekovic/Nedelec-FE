@@ -115,6 +115,8 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q,
     ierr = DMGetApplicationContext(dm, (void **) &sctx);
     CHKERRQ(ierr);
 
+	PetscLogEventBegin(sctx->matrix_assembly, 0, 0, 0, 0);
+
     // TODO: napravi nedelec objekt koji je ispod function_space i koji ima
     // assemble_2D i assemble_3D function pointere
     if (dim == 2) {
@@ -160,6 +162,8 @@ PetscErrorCode assemble_system(DM dm, struct quadrature q,
     MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     VecAssemblyBegin(b);
     VecAssemblyEnd(b);
+
+	PetscLogEventEnd(sctx->matrix_assembly, 0, 0, 0, 0);
 
     return (0);
 }

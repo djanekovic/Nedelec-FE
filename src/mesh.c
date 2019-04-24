@@ -25,6 +25,8 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
     PetscErrorCode ierr;
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;
 
+	PetscLogEventBegin(sctx->mesh_generation, 0, 0, 0, 0);
+
     /**
      * Create box mesh
      *
@@ -97,6 +99,9 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
 
     MatAssemblyBegin(sctx->G, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(sctx->G, MAT_FINAL_ASSEMBLY);
+
+	PetscLogEventEnd(sctx->mesh_generation, 0, 0, 0, 0);
+
     ierr = DMSetApplicationContext(*dm, sctx);
     CHKERRQ(ierr);
     ierr = DMSetApplicationContextDestroy(
