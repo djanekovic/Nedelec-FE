@@ -4,7 +4,6 @@
 #include "nedelec.h"
 #include "quadrature.h"
 
-PetscErrorCode assemble_system(DM, struct quadrature, struct function_space,
-                               Mat, Vec);
+PetscErrorCode assemble_system(DM, struct function_space, Mat, Vec);
 
 #endif /* MATRIX_H */

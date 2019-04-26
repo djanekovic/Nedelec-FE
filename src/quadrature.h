@@ -98,6 +98,6 @@ struct quadrature {
     PetscInt size;
 };
 
-PetscErrorCode generate_quad(PetscInt order, struct quadrature *q);
+PetscErrorCode generate_quad(struct quadrature *q, int order);
 
 #endif /* QUADRATURE_H */

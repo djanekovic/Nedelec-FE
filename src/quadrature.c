@@ -12,7 +12,7 @@
  */
 #undef __FUNCT__
 #define __FUNCT__ "generate_quad"
-PetscErrorCode generate_quad(PetscInt order, struct quadrature *q)
+PetscErrorCode generate_quad(struct quadrature *q, PetscInt order)
 {
     PetscErrorCode ierr;
     PetscInt size;

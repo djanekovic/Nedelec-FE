@@ -14,12 +14,10 @@ int main(int argc, char **argv)
 {
     struct ctx sctx;
     struct function_space fspace;
-    struct quadrature q;
     DM dm;
     Mat A;
     Vec load, x;
     KSP ksp;
-    PC pc;
 
     PetscErrorCode ierr = PetscInitialize(&argc, &argv, NULL, help);
     if (ierr) {
@@ -41,13 +39,11 @@ int main(int argc, char **argv)
     ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, sctx.eend - sctx.estart,
                         &load);
 
-    ierr = generate_quad(1, &q);
-    CHKERRQ(ierr);
-    ierr = nedelec_basis(q, &fspace);
+    ierr = nedelec_basis(&fspace, 3);
     CHKERRQ(ierr);
 
     // in one function assemble all matrices
-    ierr = assemble_system(dm, q, fspace, A, load);
+    ierr = assemble_system(dm, fspace, A, load);
     CHKERRQ(ierr);
 
     ierr = VecDuplicate(load, &x);
@@ -57,6 +53,9 @@ int main(int argc, char **argv)
     CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp, A, A);
     ierr = KSPSolve(ksp, load, x);
+
+	MatView(A, PETSC_VIEWER_STDOUT_WORLD);
+	VecView(load, PETSC_VIEWER_STDOUT_WORLD);
     VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     ierr = MatDestroy(&A);
@@ -69,8 +68,7 @@ int main(int argc, char **argv)
     CHKERRQ(ierr);
     ierr = PetscFree(fspace.val);
     CHKERRQ(ierr);
-    ierr = PetscFree(q.pw);
-    CHKERRQ(ierr);
+	ierr = PetscFree(fspace.q.pw);
 
     PetscFinalize();
 
