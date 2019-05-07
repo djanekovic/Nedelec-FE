@@ -6,7 +6,7 @@
 struct function_space {
     PetscScalar *val;
     PetscScalar *cval;
-	struct quadrature q;
+    struct quadrature q;
     PetscInt nbasis;
 };
 

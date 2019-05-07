@@ -69,7 +69,7 @@ static inline PetscReal load_vector_2D(PetscReal *invJ,
     PetscReal f_y = 1.0;
 
     // TODO: implement better handling of vector functions
-	// TODO: small matrix lib
+    // TODO: small matrix lib
     for (PetscInt i = 0; i < fs.q.size; i++) {
         int k_off = k * (fs.q.size * 2) + i * 2;
         PetscReal _x =
@@ -142,8 +142,8 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
 
                     local[k][l] = stiffness_matrix_2D(fs, sctx, detBk, sign_k,
                                                       sign_l, k, l);
-                    local[k][l] += mass_matrix_2D(_tmp_matrix, fs, sctx,
-                                                  detBk, sign_k, sign_l, k, l);
+                    local[k][l] += mass_matrix_2D(_tmp_matrix, fs, sctx, detBk,
+                                                  sign_k, sign_l, k, l);
                 }
                 load[k] = load_vector_2D(invBk, fs, sctx, detBk, k, sign_k);
             }

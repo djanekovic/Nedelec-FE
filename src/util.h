@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-//TODO: refactor
+// TODO: refactor
 
 /* Solver context definition */
 struct ctx {
@@ -13,7 +13,7 @@ struct ctx {
     Mat G; /* discrete gradient matrix */
     int *signs;
 
-	//TODO: suvišno?
+    // TODO: suvišno?
     PetscInt cstart;
     PetscInt cend;
     PetscInt estart;
@@ -29,8 +29,8 @@ struct ctx {
     PetscScalar (*load_function_2D)(PetscReal x, PetscReal y);
     PetscScalar (*load_function_3D)(PetscReal x, PetscReal y, PetscReal z);
 
-	PetscLogEvent mesh_generation, matrix_assembly, solving;
-	//TODO: FLOPS logging?
+    PetscLogEvent mesh_generation, matrix_assembly, solving;
+    // TODO: FLOPS logging?
 };
 
 PetscErrorCode handle_cli_options(struct ctx *sctx);

@@ -8,7 +8,7 @@
  */
 PetscErrorCode nedelec_basis(struct function_space *fspace, int q_order)
 {
-	generate_quad(&fspace->q, q_order);
+    generate_quad(&fspace->q, q_order);
 
     PetscInt M = fspace->q.size;
 

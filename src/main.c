@@ -54,8 +54,8 @@ int main(int argc, char **argv)
     ierr = KSPSetOperators(ksp, A, A);
     ierr = KSPSolve(ksp, load, x);
 
-	MatView(A, PETSC_VIEWER_STDOUT_WORLD);
-	VecView(load, PETSC_VIEWER_STDOUT_WORLD);
+    MatView(A, PETSC_VIEWER_STDOUT_WORLD);
+    VecView(load, PETSC_VIEWER_STDOUT_WORLD);
     VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     ierr = MatDestroy(&A);
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     CHKERRQ(ierr);
     ierr = PetscFree(fspace.val);
     CHKERRQ(ierr);
-	ierr = PetscFree(fspace.q.pw);
+    ierr = PetscFree(fspace.q.pw);
 
     PetscFinalize();
 
