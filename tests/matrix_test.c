@@ -98,8 +98,7 @@ static void test_local_stiffness(void **data)
     assert_double(r, -8.0);
     r = stiffness_matrix_2D(tctx->fs, &tctx->sctx, -0.25, -1, 1, 3, 1);
     assert_double(r, -8.0);
-    r = stiffness_matrix_2D(tctx->fs, &tctx->sctx, -0.25, -1, -1, 3,
-                            2);
+    r = stiffness_matrix_2D(tctx->fs, &tctx->sctx, -0.25, -1, -1, 3, 2);
     assert_double(r, 8.0);
     r = stiffness_matrix_2D(tctx->fs, &tctx->sctx, -0.25, 1, 1, 3, 3);
     assert_double(r, 8.0);
@@ -183,7 +182,7 @@ static inline PetscReal __compute_mass_2_2(PetscReal *invBk)
 static PetscReal _compute_mass_control(PetscReal *invBk, PetscReal detJ,
                                        int sign_k, int sign_l, int k, int l)
 {
-    PetscReal local = detJ * sign_k * sign_l;
+    PetscReal local = PetscAbsReal(detJ) * sign_k * sign_l;
 
     if (k == 0 && l == 0) {
         return local * __compute_mass_0_0(invBk);
@@ -206,7 +205,7 @@ static void test_local_mass(void **data)
     struct test_ctx *tctx = *data;
     int k, l, sign_k, sign_l;
     PetscReal res, control, _tmp_matrix[4], detJ = 0.25;
-    PetscReal invBk[4] = { 1, 2, 3, 4 };
+    PetscReal invBk[4] = { 0, 2, -2, -2 };
 
     _invBk_invBkT_2D(invBk, _tmp_matrix);
 
@@ -214,31 +213,31 @@ static void test_local_mass(void **data)
 
     k = l = 0;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
 
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ * -1,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ * -1, sign_k,
+                         sign_l, k, l);
     assert_double(res, control);
 
     sign_k = -1;
     sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     assert_double(res, control * sign_k);
 
     sign_l = -1;
     sign_k = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     assert_double(res, control * sign_l);
 
     sign_l = -1;
     sign_k = -1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     assert_double(res, control);
 
     /* Test k=0, l=1 and l=0, k=1 case */
@@ -246,12 +245,12 @@ static void test_local_mass(void **data)
     k = 0;
     l = 1;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, l, k);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, l, k);
     assert_double(res, control);
 
     /* Test k=0, l=2 and l=0, k=2 case */
@@ -259,12 +258,12 @@ static void test_local_mass(void **data)
     k = 0;
     l = 2;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, l, k);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, l, k);
     assert_double(res, control);
 
     /* Test k=1, l=1 */
@@ -272,12 +271,12 @@ static void test_local_mass(void **data)
     k = 1;
     l = 1;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, l, k);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, l, k);
     assert_double(res, control);
 
     /* Test k=1, l=2 and k=2, l=1 */
@@ -285,12 +284,12 @@ static void test_local_mass(void **data)
     k = 1;
     l = 2;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, l, k);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, l, k);
     assert_double(res, control);
 
     /* Test k=2, l=2 */
@@ -298,52 +297,70 @@ static void test_local_mass(void **data)
     k = 2;
     l = 2;
     sign_k = sign_l = 1;
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, k, l);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, k, l);
     control = _compute_mass_control(invBk, detJ, sign_k, sign_l, k, l);
     assert_double(res, control);
-    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ,
-                         sign_k, sign_l, l, k);
+    res = mass_matrix_2D(_tmp_matrix, tctx->fs, &tctx->sctx, detJ, sign_k,
+                         sign_l, l, k);
     assert_double(res, control);
 }
 
+/**
+ * Analytic solution for k = 1:
+ *
+ *  c - a     d - b
+ * ------- + -------
+ *    6         6
+ */
 static inline PetscReal __compute_load_0(PetscReal *invBk)
 {
     PetscReal res;
-    PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+    PetscReal a = invBk[0], b = invBk[1], c = invBk[2], d = invBk[3];
 
-    res = (b - a) / 6.0;
-    res += (d - c) / 6.0;
+    res = (c - a) + (d - b);
 
-    return res;
+    return res / 6.0;
 }
 
+/**
+ * Analytic solution for k = 2:
+ *
+ *    a + 2c    b + 2d
+ * - ------- - --------
+ *      6         6
+ */
 static inline PetscReal __compute_load_1(PetscReal *invBk)
 {
     PetscReal res;
-    PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+    PetscReal a = invBk[0], b = invBk[1], c = invBk[2], d = invBk[3];
 
-    res = -(2 * b + a) / 6.0;
-    res -= (2 * d + c) / 6.0;
+    res = -(2 * c + a) - (2 * d + b);
 
-    return res;
+    return res / 6.0;
 }
 
+/**
+ * Analytic solution for k = 3:
+ *
+ *  2a + c     2b + d
+ * -------- + --------
+ *     6          6
+ */
 static inline PetscReal __compute_load_2(PetscReal *invBk)
 {
     PetscReal res;
-    PetscReal a = invBk[0], b = invBk[2], c = invBk[1], d = invBk[3];
+    PetscReal a = invBk[0], b = invBk[1], c = invBk[2], d = invBk[3];
 
-    res = (a + 2 * b + 1) / 12.0;
-    res += (c + 2 * d + 1) / 12.0;
+    res = (2 * a + c) + (2 * b + d);
 
-    return res;
+    return res / 6.0;
 }
 
 static PetscReal _compute_load_control(PetscReal *invBk, PetscReal detJ,
                                        int sign_k, int k)
 {
-    PetscReal local = detJ * sign_k;
+    PetscReal local = PetscAbsReal(detJ) * sign_k;
 
     switch (k) {
         case 0:
@@ -360,37 +377,39 @@ static void test_local_load(void **data)
 {
     struct test_ctx *tctx = *data;
     int k, sign_k;
-    PetscReal res, control, detJ = 0.25;
-    PetscReal invBk[4] = { 1, 2, 3, 4 };
+    PetscReal res, control, detJ = 0.0625;
+    PetscReal invBk[4] = { 4, -0, 0, 4 };
 
     /* Test k = 0 case and all possible detJ, sign_k cases */
 
     k = 0;
     sign_k = 1;
-    res =
-        load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
+    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
     control = _compute_load_control(invBk, detJ, sign_k, k);
     assert_double(res, control);
-    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ * -1, k,
-                         sign_k);
+    printf("%lf == %lf\n", res, control);
+
+    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ * -1, k, sign_k);
+    assert_double(res, control);
+    printf("%lf == %lf\n", res, control);
+
+    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k * -1);
     assert_double(res, control * -1);
-    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k,
-                         sign_k * -1);
-    assert_double(res, control * -1);
+    printf("%lf == %lf\n", res, control * -1);
 
     /* Test k = 1 */
     k = 1;
     sign_k = 1;
-    res =
-        load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
+    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
     control = _compute_load_control(invBk, detJ, sign_k, k);
+    printf("%lf == %lf\n", res, control);
     assert_double(res, control);
 
     /* Test k = 2 */
     k = 2;
     sign_k = 1;
-    res =
-        load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
+    res = load_vector_2D(invBk, tctx->fs, &tctx->sctx, detJ, k, sign_k);
     control = _compute_load_control(invBk, detJ, sign_k, k);
+    printf("%lf == %lf\n", res, control);
     assert_double(res, control);
 }
