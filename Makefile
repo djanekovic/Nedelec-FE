@@ -37,5 +37,8 @@ mesh: $(test_mesh_obj)
 matrix: $(test_matrix_obj)
 	-${CLINKER} -o bin/tests/$@ $(test_matrix_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
 
+format:
+	clang-format-6.0 -style=file -i src/*.c src/*.h tests/*.c
+
 clean::
 	$(RM) $(obj) $(test_obj)
