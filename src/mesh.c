@@ -25,7 +25,7 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
     PetscErrorCode ierr;
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;
 
-	PetscLogEventBegin(sctx->mesh_generation, 0, 0, 0, 0);
+    PetscLogEventBegin(sctx->mesh_generation, 0, 0, 0, 0);
 
     /**
      * Create box mesh
@@ -100,7 +100,7 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
     MatAssemblyBegin(sctx->G, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(sctx->G, MAT_FINAL_ASSEMBLY);
 
-	PetscLogEventEnd(sctx->mesh_generation, 0, 0, 0, 0);
+    PetscLogEventEnd(sctx->mesh_generation, 0, 0, 0, 0);
 
     ierr = DMSetApplicationContext(*dm, sctx);
     CHKERRQ(ierr);
@@ -155,6 +155,20 @@ static PetscErrorCode debug_print(DM dm)
     DMPlexGetHeightStratum(dm, 0, &cstart, &cend);
     DMPlexGetHeightStratum(dm, 1, &estart, &eend);
     DMPlexGetHeightStratum(dm, 2, &vstart, &vend);
+
+    /*
+    for (int c = cstart; c < cend; c++) {
+        PetscInt nclosure, *closure;
+        DMPlexGetTransitiveClosure(dm, c, PETSC_TRUE, &nclosure, &closure);
+        for (PetscInt i = 0; i < nclosure; i++) {
+            const PetscInt p = closure[2*i];
+            if (p >= vstart && p < vend) {
+                printf("%d %d\n", c, p);
+            }
+        }
+        DMPlexRestoreTransitiveClosure(dm, c, PETSC_TRUE, &nclosure, &closure);
+    }
+    */
 
     for (int c = cstart; c < cend; c++) {
         const PetscInt *edges;

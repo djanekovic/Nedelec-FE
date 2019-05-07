@@ -36,8 +36,7 @@ static inline PetscReal stiffness_matrix_2D(struct function_space fs,
  * |det Bk| \int sign_k * Bk^-T * ned_k * sign_l * Bk^-T * ned_l dx
  * |det Bk| * sign_k * sign_l \int Bk * Bk^-T * ned_k * ned_l dx
  */
-static inline PetscReal mass_matrix_2D(PetscReal *C,
-                                       struct function_space fs,
+static inline PetscReal mass_matrix_2D(PetscReal *C, struct function_space fs,
                                        struct ctx *sctx, PetscReal detJ,
                                        PetscInt sign_k, PetscInt sign_l,
                                        PetscInt k_ned, PetscInt l_ned)
@@ -70,7 +69,7 @@ static inline PetscReal load_vector_2D(PetscReal *invJ,
     PetscReal f_y = 1.0;
 
     // TODO: implement better handling of vector functions
-    // Transpose matrix, multiply with vector and then again with vector
+	// TODO: small matrix lib
     for (PetscInt i = 0; i < fs.q.size; i++) {
         int k_off = k * (fs.q.size * 2) + i * 2;
         PetscReal _x =
@@ -113,7 +112,7 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
     ierr = DMGetApplicationContext(dm, (void **) &sctx);
     CHKERRQ(ierr);
 
-	PetscLogEventBegin(sctx->matrix_assembly, 0, 0, 0, 0);
+    PetscLogEventBegin(sctx->matrix_assembly, 0, 0, 0, 0);
 
     // TODO: napravi nedelec objekt koji je ispod function_space i koji ima
     // assemble_2D i assemble_3D function pointere
@@ -122,6 +121,7 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
         PetscInt row_indices[nedges], col_indices[nedges];
         const PetscInt *edgelist;
         for (PetscInt c = cstart; c < cend; c++) {
+            PetscInt offset = (c - cstart) * 3;
             PetscReal v0, Bk[4], invBk[4], detBk, _tmp_matrix[4];
             ierr = DMPlexComputeCellGeometryAffineFEM(
                 dm, c, &v0, (PetscReal *) &Bk, (PetscReal *) &invBk, &detBk);
@@ -131,22 +131,24 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
 
             _invBk_invBkT_2D(invBk, _tmp_matrix);
 
+            printf("%d %d %d\n", sctx->signs[offset], sctx->signs[offset + 1],
+                   sctx->signs[offset + 2]);
             for (PetscInt k = 0; k < nedges; k++) {
-                PetscInt sign_k = sctx->signs[(c - cstart) * 3 + k];
+                PetscInt sign_k = sctx->signs[offset + k];
                 row_indices[k] = edgelist[k] - estart;
                 for (PetscInt l = 0; l < nedges; l++) {
                     col_indices[l] = edgelist[l] - estart;
-                    PetscInt sign_l = sctx->signs[(c - cstart) * 3 + l];
+                    PetscInt sign_l = sctx->signs[offset + l];
 
-                    local[k][l] = stiffness_matrix_2D(fs, sctx, detBk,
-                                                      sign_k, sign_l, k, l);
-                    //local[k][l] += mass_matrix_2D(_tmp_matrix, fs, sctx,
-                    //                              detBk, sign_k, sign_l, k, l);
+                    local[k][l] = stiffness_matrix_2D(fs, sctx, detBk, sign_k,
+                                                      sign_l, k, l);
+                    local[k][l] += mass_matrix_2D(_tmp_matrix, fs, sctx,
+                                                  detBk, sign_k, sign_l, k, l);
                 }
                 load[k] = load_vector_2D(invBk, fs, sctx, detBk, k, sign_k);
             }
-            ierr = MatSetValues(A, nedges, row_indices, nedges, col_indices, *local,
-                                ADD_VALUES);
+            ierr = MatSetValues(A, nedges, row_indices, nedges, col_indices,
+                                *local, ADD_VALUES);
             CHKERRQ(ierr);
             ierr = VecSetValues(b, nedges, row_indices, load, ADD_VALUES);
             CHKERRQ(ierr);
@@ -161,7 +163,7 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
     VecAssemblyBegin(b);
     VecAssemblyEnd(b);
 
-	PetscLogEventEnd(sctx->matrix_assembly, 0, 0, 0, 0);
+    PetscLogEventEnd(sctx->matrix_assembly, 0, 0, 0, 0);
 
     return (0);
 }
