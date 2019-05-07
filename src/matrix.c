@@ -131,8 +131,6 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
 
             _invBk_invBkT_2D(invBk, _tmp_matrix);
 
-            printf("%d %d %d\n", sctx->signs[offset], sctx->signs[offset + 1],
-                   sctx->signs[offset + 2]);
             for (PetscInt k = 0; k < nedges; k++) {
                 PetscInt sign_k = sctx->signs[offset + k];
                 row_indices[k] = edgelist[k] - estart;
