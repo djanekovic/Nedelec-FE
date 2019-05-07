@@ -93,9 +93,9 @@
  * .size is number of rows in pw matrix.
  */
 struct quadrature {
-	PetscReal *pw;
-	PetscInt order;
-	PetscInt size;
+    PetscReal *pw;
+    PetscInt order;
+    PetscInt size;
 };
 
 PetscErrorCode generate_quad(struct quadrature *q, int order);
