@@ -14,9 +14,9 @@
  * 1/|det Bk| * sign_k * sign_l \int f(x, y) * curl_ned_k * curl_sign_l dx
  */
 static inline PetscReal stiffness_matrix_2D(struct function_space fs,
-                                            struct ctx *sctx, PetscReal detJ,
-                                            PetscInt sign_k, PetscInt sign_l,
-                                            PetscInt k, PetscInt l)
+                                            PetscReal detJ, PetscInt sign_k,
+                                            PetscInt sign_l, PetscInt k,
+                                            PetscInt l)
 {
     PetscReal local = 1 / PetscAbsReal(detJ) * sign_l * sign_k;
 
@@ -37,9 +37,9 @@ static inline PetscReal stiffness_matrix_2D(struct function_space fs,
  * |det Bk| * sign_k * sign_l \int Bk * Bk^-T * ned_k * ned_l dx
  */
 static inline PetscReal mass_matrix_2D(PetscReal *C, struct function_space fs,
-                                       struct ctx *sctx, PetscReal detJ,
-                                       PetscInt sign_k, PetscInt sign_l,
-                                       PetscInt k_ned, PetscInt l_ned)
+                                       PetscReal detJ, PetscInt sign_k,
+                                       PetscInt sign_l, PetscInt k_ned,
+                                       PetscInt l_ned)
 {
     PetscReal local = PetscAbsReal(detJ) * sign_k * sign_l;
     PetscReal sum = 0;
@@ -58,8 +58,7 @@ static inline PetscReal mass_matrix_2D(PetscReal *C, struct function_space fs,
 }
 
 static inline PetscReal load_vector_2D(PetscReal *invJ,
-                                       struct function_space fs,
-                                       struct ctx *sctx, PetscReal detJ,
+                                       struct function_space fs, PetscReal detJ,
                                        PetscInt k, PetscInt sign_k)
 {
     PetscReal local = PetscAbsReal(detJ) * sign_k;
@@ -132,18 +131,32 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
             _invBk_invBkT_2D(invBk, _tmp_matrix);
 
             for (PetscInt k = 0; k < nedges; k++) {
+                PetscInt edge_neighbours, boundary_edge = -1;
+                DMPlexGetSupportSize(dm, edgelist[k], &edge_neighbours);
+                if (edge_neighbours == 1) {
+                    boundary_edge = k;
+                }
                 PetscInt sign_k = sctx->signs[offset + k];
                 row_indices[k] = edgelist[k] - estart;
                 for (PetscInt l = 0; l < nedges; l++) {
                     col_indices[l] = edgelist[l] - estart;
                     PetscInt sign_l = sctx->signs[offset + l];
 
-                    local[k][l] = stiffness_matrix_2D(fs, sctx, detBk, sign_k,
-                                                      sign_l, k, l);
-                    local[k][l] += mass_matrix_2D(_tmp_matrix, fs, sctx, detBk,
-                                                  sign_k, sign_l, k, l);
+                    if (k == boundary_edge && l == boundary_edge) {
+                        local[k][l] = 1.0;
+                        load[k] = 0.0;
+                    } else if (k == boundary_edge || l == boundary_edge) {
+                        local[k][l] = 0.0;
+                    } else {
+                        local[k][l] = stiffness_matrix_2D(fs, detBk, sign_k,
+                                                          sign_l, k, l);
+                        local[k][l] += mass_matrix_2D(_tmp_matrix, fs, detBk,
+                                                      sign_k, sign_l, k, l);
+                    }
                 }
-                load[k] = load_vector_2D(invBk, fs, sctx, detBk, k, sign_k);
+                if (k != boundary_edge) {
+                    load[k] = load_vector_2D(invBk, fs, detBk, k, sign_k);
+                }
             }
             ierr = MatSetValues(A, nedges, row_indices, nedges, col_indices,
                                 *local, ADD_VALUES);
