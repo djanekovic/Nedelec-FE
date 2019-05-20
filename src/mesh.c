@@ -46,6 +46,16 @@ PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
     ierr = mark_boundary_faces(*dm);
     CHKERRQ(ierr);
 
+    /**
+     * Use this for boundary conditions
+     *
+    DMSetFromOptions(*dm);
+    DMView(*dm, PETSC_VIEWER_STDOUT_WORLD);
+    IS points;
+    DMGetStratumIS(*dm, "Face Sets", 1, &points);
+    ISView(points, PETSC_VIEWER_STDOUT_WORLD);
+    */
+
     DMPlexGetHeightStratum(*dm, 0, &cstart, &cend);
     DMPlexGetHeightStratum(*dm, 1, &estart, &eend);
     DMPlexGetHeightStratum(*dm, 2, &vstart, &vend);
