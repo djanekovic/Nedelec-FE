@@ -5,6 +5,20 @@ Code in this repository is heavily inspired by [1]. Assembly routines use
 PETSc library as backend. To compile the code you need PETSc installed and
 setup with Triangle/ctetgen.
 
+PETSc configuration and compilation
+===================================
+
+In order to configure and compile PETSc library run:
+
+./configure --with-blaslapack-lib=-lopenblas
+            --download-openmpi --download-hypre --download-superlu
+            --download-superlu_dist --download-parmetis --download-metis
+            --download-ptscotch --download-triangle --download-ctetgen
+            --with-cc=gcc --with-fc=gfortran
+            --with-cxx=c++ --with-cxx-dialect=C++11
+
+$ python3 util/configure.py
+
 Compiling
 =========
 
