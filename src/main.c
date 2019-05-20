@@ -25,15 +25,12 @@ int main(int argc, char **argv)
         return ierr;
     }
 
-    ierr = handle_cli_options(&sctx);
-    CHKERRQ(ierr);
+    handle_cli_options(&sctx);
 
-    ierr = generate_mesh(&sctx, &nnz, &dm);
-    CHKERRQ(ierr);
+    generate_mesh(&sctx, &nnz, &dm);
 
     ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend);
     CHKERRQ(ierr);
-
     PetscInt nedges = eend - estart;
 
     // TODO: change for parallel
