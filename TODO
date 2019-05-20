@@ -1,0 +1,13 @@
+- split src/ folder on impls/ and include/
+- cleanup Makefile and maybe tryout automake
+- setup CI
+- less if (2D) code. Should be possible with dynamic polymorphism
+- nedelec_basis() should do matrix preallocation
+- try to use or understand more PETSc code -> PetscQuadrature, PetscFE...
+- setFromOptions functions everywhere
+- implement function, constant
+- implement small matrix library
+- test, test, test...
+
+- parallel run
+- benchmark

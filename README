@@ -17,8 +17,6 @@ In order to configure and compile PETSc library run:
             --with-cc=gcc --with-fc=gfortran
             --with-cxx=c++ --with-cxx-dialect=C++11
 
-$ python3 util/configure.py
-
 Compiling
 =========
 
@@ -31,8 +29,8 @@ compile tests run:
 
 $ make tests
 
-Tests are located in ./bin/tests/ folder. Tests are currently tested only with
-one process.
+Tests are located in ./bin/tests/ folder. Tests are currently being ran only
+with one process.
 
 
 [1] - Fast MATLAB assembly of FEM matrices in 2D and 3D: Edge elements,
