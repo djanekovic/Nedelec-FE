@@ -20,7 +20,7 @@ static PetscErrorCode free_ctx(void **data);
 
 #undef __FUNCT__
 #define __FUNCT__ "generate_mesh"
-PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
+PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
 {
     PetscErrorCode ierr;
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;
@@ -61,6 +61,8 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
     /* alloc signs matrix */
     ierr = PetscMalloc1(edgenum * (cend - cstart), &sctx->signs);
     CHKERRQ(ierr);
+    ierr = PetscMalloc1(eend - estart, nnz);
+    CHKERRQ(ierr);
     ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, eend - estart, vend - vstart, 2,
                            NULL, &sctx->G);
     CHKERRQ(ierr);
@@ -80,20 +82,38 @@ PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm)
         ierr = DMPlexGetCone(*dm, c, &edgelist);
         CHKERRQ(ierr);
         ierr = DMPlexGetConeOrientation(*dm, c, &orient);
+        CHKERRQ(ierr);
         for (PetscInt i = 0; i < edgenum; i++) {
             const PetscInt *nodes;
-            DMPlexGetCone(*dm, edgelist[i], &nodes);
+            ierr = DMPlexGetCone(*dm, edgelist[i], &nodes);
+            CHKERRQ(ierr);
+
+            /* signs matrix generator */
             if (nodes[0] < nodes[1]) {
                 sctx->signs[offset + i] = (orient[i] >= 0) ? 1 : -1;
             } else {
                 sctx->signs[offset + i] = (orient[i] >= 0) ? -1 : 1;
             }
+
+            /* hypre discrete gradient */
             ierr = MatSetValue(sctx->G, edgelist[i] - estart, nodes[0] - vstart,
                                -1, INSERT_VALUES);
             CHKERRQ(ierr);
-            MatSetValue(sctx->G, edgelist[i] - estart, nodes[1] - vstart, 1,
+            ierr = MatSetValue(sctx->G, edgelist[i] - estart, nodes[1] - vstart, 1,
                         INSERT_VALUES);
             CHKERRQ(ierr);
+
+            /* preallocation only for 2D */
+            PetscInt edge_neighbours;
+            ierr = DMPlexGetSupportSize(*dm, edgelist[i], &edge_neighbours);
+            CHKERRQ(ierr);
+            if (edge_neighbours == 1) {
+                //this is edge on the boundary, this row will have 3 entries
+                (*nnz)[edgelist[i]-estart] = 3;
+            } else {
+                //this is inner edge
+                (*nnz)[edgelist[i]-estart] = 5;
+            }
         }
     }
 

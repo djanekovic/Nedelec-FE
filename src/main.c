@@ -14,6 +14,7 @@ int main(int argc, char **argv)
 {
     struct ctx sctx;
     struct function_space fspace;
+    PetscInt estart, eend, *nnz;
     DM dm;
     Mat A;
     Vec load, x;
@@ -26,25 +27,25 @@ int main(int argc, char **argv)
 
     ierr = handle_cli_options(&sctx);
     CHKERRQ(ierr);
-    ierr = generate_mesh(&sctx, &dm);
+
+    ierr = generate_mesh(&sctx, &nnz, &dm);
     CHKERRQ(ierr);
+
+    ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend);
+    CHKERRQ(ierr);
+
+    PetscInt nedges = eend - estart;
 
     // TODO: change for parallel
-    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, sctx.eend - sctx.estart,
-                           sctx.eend - sctx.estart, 0, NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, nedges, nedges, 0, nnz, &A);
     CHKERRQ(ierr);
-    // TODO: remove after good preallocation
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, nedges, &load);
     CHKERRQ(ierr);
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, sctx.eend - sctx.estart,
-                        &load);
 
-    ierr = nedelec_basis(&fspace, 3);
-    CHKERRQ(ierr);
+    nedelec_basis(&fspace, 3);
 
     // in one function assemble all matrices
-    ierr = assemble_system(dm, fspace, A, load);
-    CHKERRQ(ierr);
+    assemble_system(dm, fspace, A, load);
 
     ierr = VecDuplicate(load, &x);
     CHKERRQ(ierr);

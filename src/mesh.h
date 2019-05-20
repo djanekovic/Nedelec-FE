@@ -3,6 +3,6 @@
 
 #include "util.h"
 
-PetscErrorCode generate_mesh(struct ctx *sctx, DM *dm);
+PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm);
 
 #endif /* MESH_H */
