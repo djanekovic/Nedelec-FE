@@ -29,8 +29,8 @@ compile tests run:
 
 $ make tests
 
-Tests are located in ./bin/tests/ folder. Tests are currently being ran only
-with one process.
+Tests are based of CMocka test framework. Binary will be located in
+./bin/tests/ folder. For now, test runs are fully sequential.
 
 
 [1] - Fast MATLAB assembly of FEM matrices in 2D and 3D: Edge elements,
