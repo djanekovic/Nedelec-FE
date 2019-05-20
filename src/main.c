@@ -29,6 +29,8 @@ int main(int argc, char **argv)
 
     generate_mesh(&sctx, &nnz, &dm);
 
+    nedelec_basis(&fspace, 3);
+
     ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend);
     CHKERRQ(ierr);
     PetscInt nedges = eend - estart;
@@ -38,8 +40,6 @@ int main(int argc, char **argv)
     CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, nedges, &load);
     CHKERRQ(ierr);
-
-    nedelec_basis(&fspace, 3);
 
     // in one function assemble all matrices
     assemble_system(dm, fspace, A, load);
@@ -56,7 +56,15 @@ int main(int argc, char **argv)
     VecView(load, PETSC_VIEWER_STDOUT_WORLD);
     VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
+    ierr = VecDestroy(&load);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&x);
+    CHKERRQ(ierr);
+
     ierr = MatDestroy(&A);
+    CHKERRQ(ierr);
+
+    ierr = KSPDestroy(&ksp);
     CHKERRQ(ierr);
 
     ierr = DMDestroy(&dm);
@@ -67,6 +75,9 @@ int main(int argc, char **argv)
     ierr = PetscFree(fspace.val);
     CHKERRQ(ierr);
     ierr = PetscFree(fspace.q.pw);
+    CHKERRQ(ierr);
+    ierr = PetscFree(nnz);
+    CHKERRQ(ierr);
 
     PetscFinalize();
 
