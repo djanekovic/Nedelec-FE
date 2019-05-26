@@ -117,7 +117,7 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
     // assemble_2D i assemble_3D function pointere
     if (dim == 2) {
         PetscReal local[nedges][nedges], load[nedges];
-        PetscInt row_indices[nedges], col_indices[nedges];
+        PetscInt indices[nedges];
         const PetscInt *edgelist;
         for (PetscInt c = cstart; c < cend; c++) {
             PetscInt offset = (c - cstart) * 3;
@@ -137,9 +137,8 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
                     boundary_edge = k;
                 }
                 PetscInt sign_k = sctx->signs[offset + k];
-                row_indices[k] = edgelist[k] - estart;
+                indices[k] = edgelist[k] - estart;
                 for (PetscInt l = 0; l < nedges; l++) {
-                    col_indices[l] = edgelist[l] - estart;
                     PetscInt sign_l = sctx->signs[offset + l];
 
                     if (k == boundary_edge && l == boundary_edge) {
@@ -158,10 +157,10 @@ PetscErrorCode assemble_system(DM dm, struct function_space fs, Mat A, Vec b)
                     load[k] = load_vector_2D(invBk, fs, detBk, k, sign_k);
                 }
             }
-            ierr = MatSetValues(A, nedges, row_indices, nedges, col_indices,
+            ierr = MatSetValues(A, nedges, indices, nedges, indices,
                                 *local, ADD_VALUES);
             CHKERRQ(ierr);
-            ierr = VecSetValues(b, nedges, row_indices, load, ADD_VALUES);
+            ierr = VecSetValues(b, nedges, indices, load, ADD_VALUES);
             CHKERRQ(ierr);
         }
     } else {
