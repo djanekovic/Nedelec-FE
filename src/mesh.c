@@ -26,6 +26,7 @@ PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;
 
     PetscLogEventBegin(sctx->mesh_generation, 0, 0, 0, 0);
+    const PetscInt faces[2] = {1000, 1000};
 
     /**
      * Create box mesh
@@ -39,7 +40,7 @@ PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
      * periodicity - DM_BOUNDARY_NONE
      * interpolated - (vertices, edges, faces)
      */
-    ierr = DMPlexCreateBoxMesh(PETSC_COMM_WORLD, sctx->dim, PETSC_TRUE, NULL,
+    ierr = DMPlexCreateBoxMesh(PETSC_COMM_WORLD, sctx->dim, PETSC_TRUE, faces,
                                NULL, NULL, NULL, PETSC_TRUE, dm);
     CHKERRQ(ierr);
 

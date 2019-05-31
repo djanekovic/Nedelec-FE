@@ -21,6 +21,7 @@ PetscErrorCode handle_cli_options(struct ctx *sctx)
 
     PetscLogEventRegister("Mesh generation", 0, &sctx->mesh_generation);
     PetscLogEventRegister("Matrix assembly", 0, &sctx->matrix_assembly);
+    PetscLogEventRegister("Signs generator", 0, &sctx->signs_generation);
     PetscLogEventRegister("Solving Ax=b", 0, &sctx->solving);
 
     /* read from cli */

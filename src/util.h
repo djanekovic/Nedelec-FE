@@ -11,6 +11,7 @@ struct ctx {
     PetscInt quad_order; /* quadrature order         */
 
     Mat G; /* discrete gradient matrix */
+    /* moze biti i char ako stedim memoriju */
     int *signs;
 
     // TODO: suvišno?
@@ -29,7 +30,7 @@ struct ctx {
     PetscScalar (*load_function_2D)(PetscReal x, PetscReal y);
     PetscScalar (*load_function_3D)(PetscReal x, PetscReal y, PetscReal z);
 
-    PetscLogEvent mesh_generation, matrix_assembly, solving;
+    PetscLogEvent mesh_generation, signs_generation, matrix_assembly, solving;
     // TODO: FLOPS logging?
 };
 
