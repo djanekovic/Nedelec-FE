@@ -3,13 +3,15 @@
 
 #include "quadrature.h"
 
-struct function_space {
+typedef struct {
     PetscScalar *val;
     PetscScalar *cval;
-    struct quadrature q;
+    quadrature_t triangle;
+    quadrature_t line;
     PetscInt nbasis;
-};
+} fs_t;
 
-PetscErrorCode nedelec_basis(struct function_space *, int);
+PetscErrorCode create_nedelec(fs_t *fs, int);
+PetscErrorCode destroy_nedelec(fs_t *fs);
 
 #endif /* NEDELEC_H */

@@ -13,7 +13,7 @@ static const char *help = "Solving eddy currents problems";
 int main(int argc, char **argv)
 {
     struct ctx sctx;
-    struct function_space fspace;
+    fs_t fspace;
     PetscInt estart, eend, *nnz;
     DM dm;
     Mat A;
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     generate_mesh(&sctx, &nnz, &dm);
 
-    nedelec_basis(&fspace, 3);
+    create_nedelec(&fspace, 3);
 
     ierr = DMPlexGetHeightStratum(dm, 1, &estart, &eend);
     CHKERRQ(ierr);
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     CHKERRQ(ierr);
 
     // in one function assemble all matrices
-    assemble_system(dm, fspace, A, load);
+    assemble_system_dirichlet(dm, fspace, A, load);
 
     ierr = VecDuplicate(load, &x);
     CHKERRQ(ierr);
@@ -70,12 +70,7 @@ int main(int argc, char **argv)
     ierr = DMDestroy(&dm);
     CHKERRQ(ierr);
 
-    ierr = PetscFree(fspace.cval);
-    CHKERRQ(ierr);
-    ierr = PetscFree(fspace.val);
-    CHKERRQ(ierr);
-    ierr = PetscFree(fspace.q.pw);
-    CHKERRQ(ierr);
+    destroy_nedelec(&fspace);
     ierr = PetscFree(nnz);
     CHKERRQ(ierr);
 
