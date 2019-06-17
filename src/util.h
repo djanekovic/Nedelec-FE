@@ -13,14 +13,6 @@ struct ctx {
     Mat G; /* discrete gradient matrix */
     int *signs;
 
-    // TODO: suvišno?
-    PetscInt cstart;
-    PetscInt cend;
-    PetscInt estart;
-    PetscInt eend;
-    PetscInt vstart;
-    PetscInt vend;
-
     // TODO: complex?
     PetscScalar (*stiffness_function_2D)(PetscReal x, PetscReal y);
     PetscScalar (*stiffness_function_3D)(PetscReal x, PetscReal y, PetscReal z);
@@ -30,7 +22,6 @@ struct ctx {
     PetscScalar (*load_function_3D)(PetscReal x, PetscReal y, PetscReal z);
 
     PetscLogEvent mesh_generation, matrix_assembly, solving;
-    // TODO: FLOPS logging?
 };
 
 PetscErrorCode handle_cli_options(struct ctx *sctx);

@@ -60,12 +60,6 @@ PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
     DMPlexGetHeightStratum(*dm, 1, &estart, &eend);
     DMPlexGetHeightStratum(*dm, 2, &vstart, &vend);
     DMPlexGetConeSize(*dm, cstart, &edgenum);
-    sctx->cstart = cstart;
-    sctx->cend = cend;
-    sctx->estart = estart;
-    sctx->eend = eend;
-    sctx->vstart = vstart;
-    sctx->vend = vend;
     sctx->nelems = (cend - cstart);
 
     /* alloc signs matrix */
@@ -128,14 +122,14 @@ PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
     }
 
     MatAssemblyBegin(sctx->G, MAT_FINAL_ASSEMBLY);
-    MatAssemblyEnd(sctx->G, MAT_FINAL_ASSEMBLY);
-
     PetscLogEventEnd(sctx->mesh_generation, 0, 0, 0, 0);
 
     ierr = DMSetApplicationContext(*dm, sctx);
     CHKERRQ(ierr);
     ierr = DMSetApplicationContextDestroy(
         *dm, (PetscErrorCode(*)(void **data)) free_ctx);
+
+    MatAssemblyEnd(sctx->G, MAT_FINAL_ASSEMBLY);
 
     return (0);
 }
