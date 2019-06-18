@@ -11,6 +11,7 @@ struct ctx {
     PetscInt quad_order; /* quadrature order         */
 
     Mat G; /* discrete gradient matrix */
+    /* moze biti i char ako stedim memoriju */
     int *signs;
 
     // TODO: complex?
