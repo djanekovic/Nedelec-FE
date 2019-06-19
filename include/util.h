@@ -1,6 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <petscsys.h>
+
 // TODO: refactor
 
 /* Solver context definition */
@@ -25,6 +27,6 @@ struct ctx {
     PetscLogEvent mesh_generation, matrix_assembly, solving;
 };
 
-PetscErrorCode handle_cli_options(struct ctx *sctx);
+PetscErrorCode PETSC_EXTERN handle_cli_options(struct ctx *sctx);
 
 #endif /* UTIL_H */

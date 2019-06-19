@@ -1,6 +1,7 @@
 #ifndef NEDELEC_H
 #define NEDELEC_H
 
+#include <petscsys.h>
 #include "quadrature.h"
 
 typedef struct {
@@ -86,7 +87,7 @@ static inline PetscReal load_vector_2D(PetscReal *invJ,
     return local * sum * 0.5;
 }
 
-PetscErrorCode create_nedelec(fs_t *fs, int);
-PetscErrorCode destroy_nedelec(fs_t *fs);
+PetscErrorCode PETSC_EXTERN create_nedelec(fs_t *fs, int);
+PetscErrorCode PETSC_EXTERN destroy_nedelec(fs_t *fs);
 
 #endif /* NEDELEC_H */
