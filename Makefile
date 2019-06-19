@@ -1,44 +1,49 @@
 PETSC_DIR = /home/darko/FEM/petsc
 
 include ${PETSC_DIR}/lib/petsc/conf/variables
-include ${PETSC_DIR}/lib/petsc/conf/rules
 
-src = $(wildcard ./src/*.c)
-obj = $(src:.c=.o)
+LIB_NAME = libffn
+LIB_FILENAME = $(LIB_NAME).so
+SRC_DIR = src/
+BUILD_DIR = $(realpath .)/build
+INCLUDE_DIR = $(realpath include/)
+LIB = $(BUILD_DIR)/$(LIB_FILENAME)
 
-# Add your tests here
-test_files = mesh matrix
+WARNINGS = -Wjump-misses-init -Wall -Wextra -Wlogical-op -Wdouble-promotion
 
-# Add object files and source files for compilation here
-test_mesh_src = ./src/mesh.c ./tests/mesh_test.c
-test_mesh_obj = $(test_mesh_src:.c=.o)
+CFLAGS = $(CCPPFLAGS) -I$(INCLUDE_DIR) $(WARNINGS) -g
+export
 
-test_matrix_src = ./tests/matrix_test.c ./src/nedelec.c ./src/quadrature.c
-test_matrix_obj = $(test_matrix_src:.c=.o)
+LDFLAGS = -L$(BUILD_DIR)/ -Wl,-rpath,$(BUILD_DIR)/ $(PETSC_LIB) -lffn
+NPD = --no-print-directory
 
-# Append previously defined object files here
-test_obj = $(test_mesh_obj) $(test_matrix_obj)
+all: $(LIB_NAME)
 
-# Link with CMocka for tests
-LDFLAGS_TEST = -lcmocka
+.PHONY: clean cleanall $(LIB_NAME)
+$(LIB_NAME): build $(LIB)
+	@echo "Code is compiled!"
+	@echo "You can link to it by using -L$(BUILD_DIR) -lffn"
+	@echo "Don't forget to link against PETSc also"
 
+eddy: main.o $(LIB_NAME)
+	@echo "LD $<"
+	@$(PCC) $< -o $@ $(CFLAGS) $(LDFLAGS)
 
-.DEFAULT_GOAL := eddy
-eddy: $(obj)
-	@mkdir -p bin/
-	-${CLINKER} -o bin/$@ $(obj) -g ${PETSC_LIB}
+main.o: main.c
+	@echo "CC $<"
+	@$(PCC) -c $< -o $@ $(CFLAGS)
 
-tests: $(test_files)
-	@mkdir -p bin/tests
+build:
+	@echo "Creating $(BUILD_DIR) folder"
+	mkdir -p $(BUILD_DIR)
 
-mesh: $(test_mesh_obj)
-	-${CLINKER} -o bin/tests/$@ $(test_mesh_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
+$(LIB):
+	$(MAKE) -C $(SRC_DIR) $(LIB_FILENAME)
 
-matrix: $(test_matrix_obj)
-	-${CLINKER} -o bin/tests/$@ $(test_matrix_obj) -g ${PETSC_LIB} $(LDFLAGS_TEST)
+clean:
+	rm -f $(BUILD_DIR)/libffn.so main.o eddy
+	$(MAKE) $(NPD) -C $(SRC_DIR) clean
 
-format:
-	clang-format-6.0 -style=file -i src/*.c src/*.h tests/*.c
-
-clean::
-	$(RM) $(obj) $(test_obj)
+cleanall:
+	rm -rf $(BUILD_DIR) main.o eddy
+	$(MAKE) -C $(SRC_DIR) clean
