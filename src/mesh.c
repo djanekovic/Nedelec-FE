@@ -18,9 +18,7 @@ static PetscErrorCode free_ctx(void **data);
  *  - mesh data struct
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "generate_mesh"
-PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
+PETSC_EXTERN PetscErrorCode generate_mesh(struct ctx *sctx, PetscInt **nnz, DM *dm)
 {
     PetscErrorCode ierr;
     PetscInt cstart, cend, vstart, vend, edgenum, estart, eend;

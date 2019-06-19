@@ -87,7 +87,7 @@ static inline PetscReal load_vector_2D(PetscReal *invJ,
     return local * sum * 0.5;
 }
 
-PetscErrorCode PETSC_EXTERN create_nedelec(fs_t *fs, int);
-PetscErrorCode PETSC_EXTERN destroy_nedelec(fs_t *fs);
+PETSC_EXTERN PetscErrorCode create_nedelec(fs_t *fs, int);
+PETSC_EXTERN PetscErrorCode destroy_nedelec(fs_t *fs);
 
 #endif /* NEDELEC_H */

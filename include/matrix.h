@@ -6,6 +6,6 @@
 #include "nedelec.h"
 #include "quadrature.h"
 
-PetscErrorCode PETSC_EXTERN assemble_system_dirichlet(DM, fs_t, Mat, Vec);
+PETSC_EXTERN PetscErrorCode assemble_system_dirichlet(DM, fs_t, Mat, Vec);
 
 #endif /* MATRIX_H */

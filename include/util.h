@@ -27,6 +27,6 @@ struct ctx {
     PetscLogEvent mesh_generation, matrix_assembly, solving;
 };
 
-PetscErrorCode PETSC_EXTERN handle_cli_options(struct ctx *sctx);
+PETSC_EXTERN PetscErrorCode handle_cli_options(struct ctx *sctx);
 
 #endif /* UTIL_H */
